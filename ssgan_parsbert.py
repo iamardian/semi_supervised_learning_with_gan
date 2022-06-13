@@ -88,7 +88,7 @@ print_each_n_step = 10
 #model_name = "HooshvareLab/bert-fa-base-uncased"
 model_name = 'HooshvareLab/bert-fa-base-uncased' #@param ["HooshvareLab/bert-fa-base-uncased","HooshvareLab/bert-fa-zwnj-base"] {allow-input: true}
 
-dataset = 'persiannews' #@param ["persiannews", "digikalamag"]
+dataset = 'digikalamag' #@param ["persiannews", "digikalamag"]
 cmd_str = "git clone https://github.com/iamardian/{}.git".format(dataset)
 os.system(cmd_str)
 labeled_file = "./{}/train.csv".format(dataset)
