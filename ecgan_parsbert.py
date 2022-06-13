@@ -47,7 +47,7 @@ else:
 
 """
 
-dataSizeConstant = 0.1
+dataSizeConstant = 1
 
 #--------------------------------
 #  Transformer parameters
