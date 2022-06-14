@@ -91,7 +91,7 @@ model_name = 'HooshvareLab/bert-fa-base-uncased' #@param ["HooshvareLab/bert-fa-
 dataset = 'persiannews' #@param ["persiannews", "digikalamag"]
 cmd_str = "git clone https://github.com/iamardian/{}.git".format(dataset)
 os.system(cmd_str)
-train_data = "./{}/dev.csv".format(dataset)
+train_data = "./{}/train.csv".format(dataset)
 # labeled_file = "./{}/dev.csv".format(dataset)
 # unlabeled_file = "./{}/train.csv".format(dataset)
 test_filename = "./{}/test.csv".format(dataset)
