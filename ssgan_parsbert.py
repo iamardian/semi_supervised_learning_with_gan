@@ -91,12 +91,13 @@ model_name = 'HooshvareLab/bert-fa-base-uncased' #@param ["HooshvareLab/bert-fa-
 dataset = 'persiannews' #@param ["persiannews", "digikalamag"]
 cmd_str = "git clone https://github.com/iamardian/{}.git".format(dataset)
 os.system(cmd_str)
-labeled_file = "./{}/dev.csv".format(dataset)
-unlabeled_file = "./{}/train.csv".format(dataset)
+train_data = "./{}/dev.csv".format(dataset)
+# labeled_file = "./{}/dev.csv".format(dataset)
+# unlabeled_file = "./{}/train.csv".format(dataset)
 test_filename = "./{}/test.csv".format(dataset)
 
-print(labeled_file)
-print(unlabeled_file)
+print(train_data)
+# print(unlabeled_file)
 print(test_filename)
 
 """Load the Tranformer Model"""
@@ -106,7 +107,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 """Function required to load the dataset"""
 
-df = pd.read_csv(labeled_file, sep='\t')
+df = pd.read_csv(train_data, sep='\t')
 lst_cnt = df.label_id.to_list()
 label_list = list(set(lst_cnt))
 print(label_list)
@@ -123,9 +124,16 @@ def get_qc_examples(input_file):
 """Load the PersianNews and Digimag Datasets then separate labeled and unlabeled data."""
 
 #Load the examples
-labeled_examples = get_qc_examples(labeled_file)
-unlabeled_examples = get_qc_examples(unlabeled_file)
+train_examples = get_qc_examples(train_data)
+labeled_data_const = int(0.02 * len(train_examples))
+labeled_examples = train_examples[:labeled_data_const]
+unlabeled_examples = train_examples[labeled_data_const:]
 test_examples = get_qc_examples(test_filename)
+
+print("train_examples : ",len(train_examples))
+print("labeled_data_const : ",len(labeled_data_const))
+print("labeled_examples : ",len(labeled_examples))
+print("unlabeled_examples : ",len(unlabeled_examples))
 
 """Functions required to convert examples into Dataloader"""
 
