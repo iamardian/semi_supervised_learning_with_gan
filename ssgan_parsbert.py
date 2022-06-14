@@ -125,6 +125,7 @@ def get_qc_examples(input_file):
 
 #Load the examples
 train_examples = get_qc_examples(train_data)
+random.shuffle(train_examples)
 labeled_data_const = int(0.02 * len(train_examples))
 labeled_examples = train_examples[:labeled_data_const]
 unlabeled_examples = train_examples[labeled_data_const:]
