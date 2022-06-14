@@ -131,7 +131,7 @@ unlabeled_examples = train_examples[labeled_data_const:]
 test_examples = get_qc_examples(test_filename)
 
 print("train_examples : ",len(train_examples))
-print("labeled_data_const : ",len(labeled_data_const))
+print("labeled_data_const : ",labeled_data_const)
 print("labeled_examples : ",len(labeled_examples))
 print("unlabeled_examples : ",len(unlabeled_examples))
 
