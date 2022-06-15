@@ -24,6 +24,39 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 #!pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 -f https://download.pytorch.org/whl/torch_stable.html
 #!pip install sentencepiece
 
+
+
+##########################
+# GET PARAMS WITH SWITCH
+##########################
+import getopt, sys
+argumentList = sys.argv[1:]
+# Options
+options = "hd:p:"
+# Long options
+long_options = ["help", "dataset", "percentage"]
+
+dataset_name = "persiannews"
+percentage_labeled_data = 0.1
+try:
+    # Parsing argument
+    arguments, values = getopt.getopt(argumentList, options, long_options)
+    # checking each argument
+    for currentArgument, currentValue in arguments:
+        if currentArgument in ("-h", "--help"):
+            print ("Displaying Help")
+        elif currentArgument in ("-d", "--dataset"):
+            dataset_name = currentValue
+        elif currentArgument in ("-p", "--percentage"):
+            percentage_labeled_data = int(currentValue)
+except getopt.error as err:
+    # output error, and return with an error code
+    print (str(err))
+    
+print("Dataset : {} \nPercentage : {}".format(dataset_name,percentage_labeled_data))
+
+
+
 ##Set random values
 seed_val = 42
 random.seed(seed_val)
@@ -47,7 +80,7 @@ else:
 
 """
 
-dataSizeConstant = 1
+dataSizeConstant = percentage_labeled_data
 
 #--------------------------------
 #  Transformer parameters
@@ -96,7 +129,7 @@ print_each_n_step = 10
 #model_name = "HooshvareLab/bert-fa-base-uncased"
 model_name = 'HooshvareLab/bert-fa-base-uncased' #@param ["HooshvareLab/bert-fa-base-uncased","HooshvareLab/bert-fa-zwnj-base"] {allow-input: true}
 
-dataset = 'digikalamag' #@param ["persiannews", "digikalamag"]
+dataset = dataset_name
 cmd_str = "git clone https://github.com/iamardian/{}.git".format(dataset)
 os.system(cmd_str)
 labeled_file = "./{}/train.csv".format(dataset)
