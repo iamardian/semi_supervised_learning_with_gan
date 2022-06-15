@@ -48,7 +48,7 @@ try:
         elif currentArgument in ("-d", "--dataset"):
             dataset_name = currentValue
         elif currentArgument in ("-p", "--percentage"):
-            percentage_labeled_data = int(currentValue)
+            percentage_labeled_data = float(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print (str(err))
