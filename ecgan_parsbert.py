@@ -133,11 +133,11 @@ dataset = dataset_name
 cmd_str = "git clone https://github.com/iamardian/{}.git".format(dataset)
 os.system(cmd_str)
 labeled_file = "./{}/train.csv".format(dataset)
-unlabeled_file = "./{}/dev.csv".format(dataset)
+validation_file = "./{}/dev.csv".format(dataset)
 test_filename = "./{}/test.csv".format(dataset)
 
 print(labeled_file)
-print(unlabeled_file)
+print(validation_file)
 print(test_filename)
 
 """Load the Tranformer Model"""
@@ -168,9 +168,7 @@ labeled_examples = get_qc_examples(labeled_file)
 subset = np.random.permutation([i for i in range(len(labeled_examples))])
 number_of_sample = subset[:int(len(labeled_examples) * (dataSizeConstant))]
 labeled_examples = [labeled_examples[i] for i in number_of_sample]
-
-# unlabeled_examples = get_qc_examples(unlabeled_file)
-unlabeled_examples = None
+validation_examples = get_qc_examples(validation_file)
 test_examples = get_qc_examples(test_filename)
 
 """Functions required to convert examples into Dataloader"""
@@ -264,22 +262,19 @@ for (i, label) in enumerate(label_list):
 train_examples = labeled_examples
 #The labeled (train) dataset is assigned with a mask set to True
 train_label_masks = np.ones(len(labeled_examples), dtype=bool)
-#If unlabel examples are available
-if unlabeled_examples:
-  print("with unlabel examples")
-  train_examples = train_examples + unlabeled_examples
-  #The unlabeled (train) dataset is assigned with a mask set to False
-  tmp_masks = np.zeros(len(unlabeled_examples), dtype=bool)
-  train_label_masks = np.concatenate([train_label_masks,tmp_masks])
-
 train_dataloader = generate_data_loader(train_examples, train_label_masks, label_map, do_shuffle = True, balance_label_examples = apply_balance)
+
+
+validation_label_masks = np.ones(len(validation_examples), dtype=bool)
+validation_dataloader = generate_data_loader(validation_examples, validation_label_masks, label_map, do_shuffle = True, balance_label_examples = apply_balance)
+
+
 
 #------------------------------
 #   Load the test dataset
 #------------------------------
 #The labeled (test) dataset is assigned with a mask set to True
 test_label_masks = np.ones(len(test_examples), dtype=bool)
-
 test_dataloader = generate_data_loader(test_examples, test_label_masks, label_map, do_shuffle = False, balance_label_examples = False)
 
 """We define the Generator and Discriminator as discussed in https://www.aclweb.org/anthology/2020.acl-main.191/"""
@@ -375,9 +370,6 @@ if torch.cuda.is_available():
   if multi_gpu:
     transformer = torch.nn.DataParallel(transformer)
 
-# print(config)
-
-"""GAP"""
 
 # data for plotting purposes
 generatorLosses = []
@@ -408,6 +400,7 @@ def print_accuurracy(index , acc):
     total_acc.append([index , acc])
     tdf = pd.DataFrame(total_acc,columns=title)
     print (tdf)
+
 
 def train(datasetloader):
   for epoch_i in range(0,num_train_epochs):
@@ -535,7 +528,7 @@ def validate(epoch):
   correct = 0
   total = 0
   with torch.no_grad():
-    for data in test_dataloader:
+    for data in validation_dataloader:
 
       b_input_ids = data[0].to(device)
       b_input_mask = data[1].to(device)
