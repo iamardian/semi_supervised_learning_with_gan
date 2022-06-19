@@ -393,12 +393,20 @@ advWeight = 0.1 # adversarial weight
 loss = nn.BCELoss()
 criterion = nn.CrossEntropyLoss()
 
-total_acc = []
-def print_accuurracy(index , acc):
+total_acc_validation = []
+total_acc_evaluation = []
+def print_validation_accuracy(index , acc):
   with pd.option_context('display.max_rows', None, 'display.max_columns', None):
     title = ["epoch","acc"]
-    total_acc.append([index , acc])
-    tdf = pd.DataFrame(total_acc,columns=title)
+    total_acc_validation.append([index , acc])
+    tdf = pd.DataFrame(total_acc_validation,columns=title)
+    print (tdf)
+    
+def print_evaluation_accuracy(index , acc):
+  with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+    title = ["epoch","acc"]
+    total_acc_evaluation.append([index , acc])
+    tdf = pd.DataFrame(total_acc_evaluation,columns=title)
     print (tdf)
 
 
@@ -520,6 +528,7 @@ def train(datasetloader):
         classifier.train()
     
     print("Epoch " + str(epoch_i+1) + " Complete")
+    evaluation(epoch_i)
     validate(epoch_i)
 
 def validate(epoch):
@@ -547,14 +556,35 @@ def validate(epoch):
       correct += (predicted == b_labels).sum().item()
 
   accuracy = (correct / total) * 100 
-  print_accuurracy(epoch+1,accuracy)
+  print_validation_accuracy(epoch+1,accuracy)
+  print("{} / {} * 100 = {} ".format(correct,total,accuracy))
+  classifier.train()
+  
+def evaluation(epoch):
+  classifier.eval()
+
+  correct = 0
+  total = 0
+  with torch.no_grad():
+    for data in validation_dataloader:
+
+      b_input_ids = data[0].to(device)
+      b_input_mask = data[1].to(device)
+      b_labels = data[2].to(device)
+      model_outputs = transformer(b_input_ids, attention_mask=b_input_mask)
+      hidden_states = model_outputs[-1]
+
+      outputs = classifier(hidden_states)
+      _, predicted = torch.max(outputs.data, 1)
+      total += b_labels.size(0)
+      correct += (predicted == b_labels).sum().item()
+
+  accuracy = (correct / total) * 100 
+  print_evaluation_accuracy(epoch+1,accuracy)
   print("{} / {} * 100 = {} ".format(correct,total,accuracy))
   classifier.train()
 
 train(train_dataloader)
 
-with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-  title = ["epoch","acc"]
-  tdf = pd.DataFrame(total_acc,columns=title)
-  print (tdf)
+# TODO
 
