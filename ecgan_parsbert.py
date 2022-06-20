@@ -499,7 +499,7 @@ def find_latest_model_name(dir_path):
     return model_name
 
 
-def load_params(load_path):
+def load_params(load_path,classifier,generator,discriminator,transformer,cfr_optimizer,gen_optimizer,dis_optimizer):
     print("call load_params")
     if not os.path.exists(load_path):
         print("not exists path : ", load_path)
@@ -511,7 +511,6 @@ def load_params(load_path):
     print(f"model_path : {model_path}")
     checkpoint = torch.load(model_path)
     global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses, total_acc_validation, total_acc_evaluation
-    global transformer,classifier,generator,cfr_optimizer,gen_optimizer,discriminator,dis_optimizer
     offset = checkpoint['epoch']
     print(f"offset : {offset}")
     best_model_accuracy = checkpoint['best_model_accuracy']
@@ -586,7 +585,7 @@ def remove_previous_models(dir_path, epoch):
 
 def train(datasetloader):
     print("Training Start : ")
-    load_params(models_path)
+    load_params(models_path,classifier,generator,discriminator,transformer,cfr_optimizer,gen_optimizer,dis_optimizer)
     for epoch_i in range(offset+1, num_train_epochs):
 
         classifier.train()
