@@ -429,7 +429,7 @@ total_acc_evaluation = []
 
 best_model_accuracy = 0
 default_path_str = "/content/drive/MyDrive/NLP/save/"
-dir_name = f"ec_gan|{model_name}|{dataset_name}|{percentage_labeled_data}|{adversarial_weight}|{confidence_thresh}"
+dir_name = f"ec_gan|{dataset_name}|{percentage_labeled_data}|{adversarial_weight}|{confidence_thresh}"
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
 
@@ -535,7 +535,7 @@ def create_path_if_not_exists(dir_path):
 def save_params(epoch, save_path):
     print("call save_params")
     create_path_if_not_exists(save_path)
-    model_name_path = f'{str(epoch).zfill(3)}_{model_name}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
+    model_name_path = f'{str(epoch).zfill(3)}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
     model_path_name = os.path.join(save_path, model_name_path)
     torch.save({
         'epoch': epoch,
