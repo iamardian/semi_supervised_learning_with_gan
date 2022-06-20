@@ -567,6 +567,7 @@ def save_params(epoch, save_path):
 def remove_previous_models(dir_path, epoch):
     filelist = [f for f in os.listdir(dir_path) if not f.startswith(
         f'{str(epoch).zfill(3)}') and not f.startswith("{best_model_name}")]
+    print(filelist)
     for f in filelist:
         os.remove(os.path.join(dir_path, f))
 
@@ -743,7 +744,7 @@ def evaluation(epoch):
     correct = 0
     total = 0
     with torch.no_grad():
-        for data in validation_dataloader:
+        for data in train_dataloader:
 
             b_input_ids = data[0].to(device)
             b_input_mask = data[1].to(device)
