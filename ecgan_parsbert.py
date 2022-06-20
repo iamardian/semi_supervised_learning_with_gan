@@ -488,10 +488,15 @@ def find_latest_model_name(dir_path):
     if not os.path.exists(dir_path):
         return model_name
     files = sorted(filter(os.path.isfile, glob.glob(dir_path + '/*')))
-    
     if len(files) == 0:
         return model_name
-    return files[-1]
+    for f in reversed(range(len(files))):
+          if "best" in files[f]:
+                continue
+          else:
+                model_name = files[f]
+                break
+    return model_name
 
 
 def load_params(load_path):
