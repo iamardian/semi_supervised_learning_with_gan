@@ -566,7 +566,7 @@ def save_params(epoch, save_path):
 
 def remove_previous_models(dir_path, epoch):
     filelist = [f for f in os.listdir(dir_path) if not f.startswith(
-        f'{str(epoch).zfill(3)}') or not f.startswith("{best_model_name}")]
+        f'{str(epoch).zfill(3)}') and not f.startswith("{best_model_name}")]
     for f in filelist:
         os.remove(os.path.join(dir_path, f))
 
