@@ -487,7 +487,8 @@ def find_latest_model_name(dir_path):
     model_name = ""
     if not os.path.exists(dir_path):
         return model_name
-    files = sorted(filter(os.path.isfile, glob.glob(dir_path + '*')))
+    files = sorted(filter(os.path.isfile, glob.glob(dir_path + '/*')))
+    
     if len(files) == 0:
         return model_name
     return files[-1]
