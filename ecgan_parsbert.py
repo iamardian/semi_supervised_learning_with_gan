@@ -511,7 +511,7 @@ def load_params(load_path):
     print(f"model_path : {model_path}")
     checkpoint = torch.load(model_path)
     global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses, total_acc_validation, total_acc_evaluation
-    
+    global transformer,classifier,generator,cfr_optimizer,gen_optimizer,discriminator,dis_optimizer
     offset = checkpoint['epoch']
     print(f"offset : {offset}")
     best_model_accuracy = checkpoint['best_model_accuracy']
