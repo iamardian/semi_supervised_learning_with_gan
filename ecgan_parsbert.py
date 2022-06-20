@@ -526,6 +526,7 @@ def load_params(load_path):
 
 def create_path_if_not_exists(dir_path):
     print("call create_path_if_not_exists")
+    print(f"dir_path : {dir_path}")
     if os.path.exists(dir_path):
         return
     os.makedirs(dir_path, exist_ok=True)
