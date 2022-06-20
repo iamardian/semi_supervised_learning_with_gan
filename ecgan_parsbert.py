@@ -535,8 +535,8 @@ def create_path_if_not_exists(dir_path):
 def save_params(epoch, save_path):
     print("call save_params")
     create_path_if_not_exists(save_path)
-    model_name = f'{str(epoch).zfill(3)}_{model_name}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
-    model_path_name = os.path.join(save_path, model_name)
+    model_name_path = f'{str(epoch).zfill(3)}_{model_name}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
+    model_path_name = os.path.join(save_path, model_name_path)
     torch.save({
         'epoch': epoch,
         'best_model_accuracy': best_model_accuracy,
