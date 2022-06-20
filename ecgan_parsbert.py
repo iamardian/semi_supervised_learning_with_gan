@@ -451,7 +451,7 @@ def save_best_model(save_path, epoch, accuracy):
     create_path_if_not_exists(save_path)
     if best_model_accuracy >= accuracy:
         return
-    best_model_path = os.path.join(save_path , f"{best_model_name}.pth")
+    best_model_path = os.path.join(save_path, f"{best_model_name}.pth")
     torch.save({
         'epoch': epoch,
         'transformer_state_dict': transformer.state_dict(),
@@ -501,9 +501,12 @@ def load_params(load_path):
     model_path = find_latest_model_name(load_path)
     if model_path == "":
         return
+    print(f"model_path : {model_path}")
     checkpoint = torch.load(model_path)
     global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses, total_acc_validation, total_acc_evaluation
+    
     offset = checkpoint['epoch']
+    print(f"offset : {offset}")
     best_model_accuracy = checkpoint['best_model_accuracy']
 
     transformer.load_state_dict(checkpoint['transformer_state_dict'])
@@ -561,7 +564,7 @@ def save_params(epoch, save_path):
             'total_acc_validation': total_acc_validation,
             'total_acc_evaluation': total_acc_evaluation,
         }, model_path_name)
-        remove_previous_models(save_path,epoch)
+        remove_previous_models(save_path, epoch)
     except:
         print("save model failed ...")
 
@@ -570,8 +573,8 @@ def remove_previous_models(dir_path, epoch):
     filelist = sorted(filter(os.path.isfile, glob.glob(dir_path + '*')))
     print(filelist)
     for f in filelist:
-      if (not ("best" in f) and not (f"{str(epoch).zfill(3)}" in f)):
-        os.remove(os.path.join(dir_path, f))
+        if (not ("best" in f) and not (f"{str(epoch).zfill(3)}" in f)):
+            os.remove(os.path.join(dir_path, f))
 
 
 def train(datasetloader):
