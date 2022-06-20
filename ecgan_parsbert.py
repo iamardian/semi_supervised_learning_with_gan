@@ -517,14 +517,14 @@ def load_params(load_path,classifier,generator,discriminator,transformer,cfr_opt
 
     transformer.load_state_dict(checkpoint['transformer_state_dict'])
 
-    classifier.load_state(checkpoint['classifier_state_dict'])
-    cfr_optimizer.load_state(checkpoint['cfr_optimizer_state_dict'])
+    classifier.load_state_dict(checkpoint['classifier_state_dict'])
+    cfr_optimizer.load_state_dict(checkpoint['cfr_optimizer_state_dict'])
 
-    generator.load_state(checkpoint['generator_state_dict'])
-    gen_optimizer.load_state(checkpoint['gen_optimizer_state_dict'])
+    generator.load_state_dict(checkpoint['generator_state_dict'])
+    gen_optimizer.load_state_dict(checkpoint['gen_optimizer_state_dict'])
 
-    discriminator.load_state(checkpoint['discriminator_state_dict'])
-    dis_optimizer.load_state(checkpoint['dis_optimizer_state_dict'])
+    discriminator.load_state_dict(checkpoint['discriminator_state_dict'])
+    dis_optimizer.load_state_dict(checkpoint['dis_optimizer_state_dict'])
 
     generatorLosses = checkpoint['generatorLosses']
     discriminatorLosses = checkpoint['discriminatorLosses']
