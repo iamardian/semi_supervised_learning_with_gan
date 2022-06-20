@@ -34,14 +34,15 @@ import getopt
 import sys
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:"
+options = "hd:p:w:t:e:"
 # Long options
-long_options = ["help", "dataset", "percentage", "weight", "thresh"]
+long_options = ["help", "dataset", "percentage", "weight", "thresh","epochs"]
 
 dataset_name = "persiannews"
 percentage_labeled_data = 0.1
 adversarial_weight = 0.1
 confidence_thresh = 0.2
+num_epochs = 10
 try:
     # Parsing argument
     arguments, values = getopt.getopt(argumentList, options, long_options)
@@ -57,6 +58,8 @@ try:
             adversarial_weight = float(currentValue)
         elif currentArgument in ("-t", "--thresh"):
             confidence_thresh = float(currentValue)
+        elif currentArgument in ("-e", "--epochs"):
+            num_epochs = int(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -126,7 +129,9 @@ learning_rate_discriminator = 5e-5
 learning_rate_generator = 5e-5
 learning_rate_classifier = 5e-5
 epsilon = 1e-8
-num_train_epochs = 100
+
+num_train_epochs = num_epochs
+
 multi_gpu = True
 # Scheduler
 apply_scheduler = False
