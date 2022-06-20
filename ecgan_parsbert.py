@@ -499,6 +499,7 @@ def load_params(load_path):
         print("not exists path : ", load_path)
         return
     model_path = find_latest_model_name(load_path)
+    print(f"latest model : {model_path}")
     if model_path == "":
         return
     print(f"model_path : {model_path}")
