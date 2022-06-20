@@ -495,12 +495,11 @@ def find_latest_model_name(dir_path):
 def load_params(load_path):
     print("call load_params")
     if not os.path.exists(load_path):
-        print("not exists path : ",load_path)
+        print("not exists path : ", load_path)
         return
-    model_name = find_latest_model_name(load_path)
-    if model_name == "":
+    model_path = find_latest_model_name(load_path)
+    if model_path == "":
         return
-    model_path = load_path + "/" + model_name
     checkpoint = torch.load(model_path)
     global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses, total_acc_validation, total_acc_evaluation
     offset = checkpoint['epoch']
@@ -534,31 +533,42 @@ def create_path_if_not_exists(dir_path):
 
 def save_params(epoch, save_path):
     print("call save_params")
-    create_path_if_not_exists(save_path)
-    model_name_path = f'{str(epoch).zfill(3)}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
-    model_path_name = os.path.join(save_path, model_name_path)
-    torch.save({
-        'epoch': epoch,
-        'best_model_accuracy': best_model_accuracy,
+    try:
+        create_path_if_not_exists(save_path)
+        model_name_path = f'{str(epoch).zfill(3)}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
+        model_path_name = os.path.join(save_path, model_name_path)
+        torch.save({
+            'epoch': epoch,
+            'best_model_accuracy': best_model_accuracy,
 
-        'transformer_state_dict': transformer.state_dict(),
+            'transformer_state_dict': transformer.state_dict(),
 
-        'classifier_state_dict': classifier.state_dict(),
-        'cfr_optimizer_state_dict': cfr_optimizer.state_dict(),
+            'classifier_state_dict': classifier.state_dict(),
+            'cfr_optimizer_state_dict': cfr_optimizer.state_dict(),
 
-        'generator_state_dict': generator.state_dict(),
-        'gen_optimizer_state_dict': gen_optimizer.state_dict(),
+            'generator_state_dict': generator.state_dict(),
+            'gen_optimizer_state_dict': gen_optimizer.state_dict(),
 
-        'discriminator_state_dict': discriminator.state_dict(),
-        'dis_optimizer_state_dict': dis_optimizer.state_dict(),
+            'discriminator_state_dict': discriminator.state_dict(),
+            'dis_optimizer_state_dict': dis_optimizer.state_dict(),
 
-        'generatorLosses': generatorLosses,
-        'discriminatorLosses': discriminatorLosses,
-        'classifierLosses': classifierLosses,
+            'generatorLosses': generatorLosses,
+            'discriminatorLosses': discriminatorLosses,
+            'classifierLosses': classifierLosses,
 
-        'total_acc_validation': total_acc_validation,
-        'total_acc_evaluation': total_acc_evaluation,
-    }, model_path_name)
+            'total_acc_validation': total_acc_validation,
+            'total_acc_evaluation': total_acc_evaluation,
+        }, model_path_name)
+        remove_previous_models(save_path,epoch)
+    except:
+        print("save model failed ...")
+
+
+def remove_previous_models(dir_path, epoch):
+    filelist = [f for f in os.listdir(dir_path) if not f.startswith(
+        f'{str(epoch).zfill(3)}') or not f.startswith("{best_model_name}")]
+    for f in filelist:
+        os.remove(os.path.join(dir_path, f))
 
 
 def train(datasetloader):
@@ -727,7 +737,7 @@ def validate(epoch):
 
 def evaluation(epoch):
     print("call evaluation")
-      
+
     classifier.eval()
 
     correct = 0
