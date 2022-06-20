@@ -419,7 +419,7 @@ cfr_optimizer = torch.optim.AdamW(c_vars, lr=learning_rate_classifier)
 gen_optimizer = torch.optim.AdamW(g_vars, lr=learning_rate_generator)
 
 advWeight = adversarial_weight  # adversarial weight
-offset = 0
+offset = -1
 
 loss = nn.BCELoss()
 criterion = nn.CrossEntropyLoss()
@@ -587,7 +587,7 @@ def remove_previous_models(dir_path, epoch):
 def train(datasetloader):
     print("Training Start : ")
     load_params(models_path)
-    for epoch_i in range(0+offset, num_train_epochs):
+    for epoch_i in range(offset+1, num_train_epochs):
 
         classifier.train()
 
