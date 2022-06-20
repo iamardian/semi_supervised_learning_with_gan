@@ -451,12 +451,13 @@ def save_best_model(save_path, epoch, accuracy):
     create_path_if_not_exists(save_path)
     if best_model_accuracy >= accuracy:
         return
-    best_model_path = save_path + "/" + f"{best_model_name}.pth"
+    best_model_path = os.path.join(save_path , f"{best_model_name}.pth")
     torch.save({
         'epoch': epoch,
         'transformer_state_dict': transformer.state_dict(),
         'classifier_state_dict': classifier.state_dict(),
     }, best_model_path)
+    print("Best model Saved")
 
 
 def print_validation_accuracy(index, acc):
