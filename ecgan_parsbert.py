@@ -435,6 +435,7 @@ best_model_name = "best_model"
 
 
 def load_best_model(load_path):
+    print("call load_best_model")
     best_model_path = load_path + "/" + f"{best_model_name}.pth"
     checkpoint = torch.load(best_model_path)
     transformer = AutoModel.from_pretrained(model_name)
@@ -446,6 +447,8 @@ def load_best_model(load_path):
 
 
 def save_best_model(save_path, epoch, accuracy):
+    print("call save_best_model")
+    create_path_if_not_exists(save_path)
     if best_model_accuracy >= accuracy:
         return
     best_model_path = save_path + "/" + f"{best_model_name}.pth"
@@ -457,22 +460,29 @@ def save_best_model(save_path, epoch, accuracy):
 
 
 def print_validation_accuracy(index, acc):
+    print("call print_validation_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         title = ["epoch", "acc"]
         total_acc_validation.append([index, acc])
         tdf = pd.DataFrame(total_acc_validation, columns=title)
+        print("validation")
         print(tdf)
+        print("validation")
 
 
 def print_evaluation_accuracy(index, acc):
+    print("call print_evaluation_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         title = ["epoch", "acc"]
         total_acc_evaluation.append([index, acc])
         tdf = pd.DataFrame(total_acc_evaluation, columns=title)
+        print("evaluation")
         print(tdf)
+        print("evaluation")
 
 
 def find_latest_model_name(dir_path):
+    print("call find_latest_model_name")
     model_name = ""
     if not os.path.exists(dir_path):
         return model_name
@@ -483,7 +493,9 @@ def find_latest_model_name(dir_path):
 
 
 def load_params(load_path):
+    print("call load_params")
     if not os.path.exists(load_path):
+        print("not exists path : ",load_path)
         return
     model_name = find_latest_model_name(load_path)
     if model_name == "":
@@ -514,12 +526,14 @@ def load_params(load_path):
 
 
 def create_path_if_not_exists(dir_path):
+    print("call create_path_if_not_exists")
     if os.path.exists(dir_path):
         return
     os.makedirs(dir_path, exist_ok=True)
 
 
 def save_params(epoch, save_path):
+    print("call save_params")
     create_path_if_not_exists(save_path)
     model_name = f'{str(epoch).zfill(3)}_{model_name}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
     model_path_name = os.path.join(save_path, model_name)
@@ -548,6 +562,7 @@ def save_params(epoch, save_path):
 
 
 def train(datasetloader):
+    print("Training Start : ")
     load_params(models_path)
     for epoch_i in range(0+offset, num_train_epochs):
 
@@ -679,6 +694,7 @@ def train(datasetloader):
 
 
 def validate(epoch):
+    print("call validate")
     classifier.eval()
 
     correct = 0
@@ -704,12 +720,14 @@ def validate(epoch):
 
     accuracy = (correct / total) * 100
     print_validation_accuracy(epoch+1, accuracy)
-    print("{} / {} * 100 = {} ".format(correct, total, accuracy))
+    print("validate : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
     return accuracy
 
 
 def evaluation(epoch):
+    print("call evaluation")
+      
     classifier.eval()
 
     correct = 0
@@ -731,12 +749,13 @@ def evaluation(epoch):
 
     accuracy = (correct / total) * 100
     print_evaluation_accuracy(epoch+1, accuracy)
-    print("{} / {} * 100 = {} ".format(correct, total, accuracy))
+    print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
     return accuracy
 
 
 def test(transformer, classifier):
+    print("call test")
     classifier.eval()
 
     correct = 0
@@ -758,12 +777,12 @@ def test(transformer, classifier):
 
     accuracy = (correct / total) * 100
     print_evaluation_accuracy(accuracy)
-    print("{} / {} * 100 = {} ".format(correct, total, accuracy))
+    print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
     return accuracy
 
 
 train(train_dataloader)
 
-# TODO test validation
+
 transformer, classifier = load_best_model(models_path)
 test(transformer, classifier)
