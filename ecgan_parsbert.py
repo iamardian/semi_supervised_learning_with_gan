@@ -431,6 +431,7 @@ criterion = nn.CrossEntropyLoss()
 
 total_acc_validation = []
 total_acc_evaluation = []
+total_acc_test = []
 
 best_model_accuracy = 0
 default_path_str = "/content/drive/MyDrive/NLP/save/"
@@ -501,6 +502,16 @@ def print_evaluation_accuracy(index, acc):
         print("evaluation")
         print(tdf)
         print("evaluation")
+        
+def print_test_accuracy(acc):
+    print("call print_test_accuracy")
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        title = ["acc"]
+        total_acc_test.append([acc])
+        tdf = pd.DataFrame(total_acc_test, columns=title)
+        print("test")
+        print(tdf)
+        print("test")
 
 
 def find_latest_model_name(dir_path):
@@ -820,7 +831,7 @@ def test(transformer, classifier):
             correct += (predicted == b_labels).sum().item()
 
     accuracy = (correct / total) * 100
-    print_evaluation_accuracy(accuracy)
+    print_test_accuracy(accuracy)
     print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
     return accuracy
 
