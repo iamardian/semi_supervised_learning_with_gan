@@ -467,6 +467,7 @@ def save_best_model(save_path, epoch, accuracy):
     print(f"output_dir : {output_dir}")
     create_path_if_not_exists(output_dir)
     create_path_if_not_exists(save_path)
+    print(f"best_model_accuracy : {best_model_accuracy}")
     if best_model_accuracy >= accuracy:
         return
     best_model_accuracy = accuracy
