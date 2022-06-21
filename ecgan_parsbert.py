@@ -448,8 +448,6 @@ def load_best_model(load_path):
     if not os.path.exists(output_dir):
       print("not exists path : ", output_dir)
       return False
-    transformer2 = transformer.from_pretrained(output_dir)
-    # tokenizer2 = tokenizer.from_pretrained(output_dir)
     best_model_path = load_path + "/" + f"{best_model_name}.pth"
     checkpoint = torch.load(best_model_path)
     # transformer = AutoModel.from_pretrained(model_name)
@@ -457,6 +455,8 @@ def load_best_model(load_path):
     #                         num_labels=len(label_list), dropout_rate=out_dropout_rate)
     # transformer.load_state_dict(checkpoint['transformer_state_dict'])
     classifier.load_state_dict(checkpoint['classifier_state_dict'])
+    # tokenizer2 = tokenizer.from_pretrained(output_dir)
+    transformer2 = transformer.from_pretrained(output_dir)
     return transformer2, classifier
 
 
