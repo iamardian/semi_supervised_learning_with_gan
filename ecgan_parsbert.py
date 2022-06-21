@@ -442,6 +442,12 @@ best_model_name = "best_model"
 def load_best_model(load_path):
     print("call load_best_model")
     output_dir = os.path.join(load_path,"/best/")
+    if not os.path.exists(load_path):
+      print("not exists path : ", load_path)
+      return False
+    if not os.path.exists(output_dir):
+      print("not exists path : ", output_dir)
+      return False
     transformer2 = transformer.from_pretrained(output_dir)
     # tokenizer2 = tokenizer.from_pretrained(output_dir)
     best_model_path = load_path + "/" + f"{best_model_name}.pth"
@@ -822,4 +828,7 @@ train(train_dataloader)
 
 
 transformer, classifier = load_best_model(models_path)
+if transformer == False:
+    print("an error occurred : load best model failed")
+    exit()
 test(transformer, classifier)
