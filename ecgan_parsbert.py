@@ -836,7 +836,7 @@ def test(transformer, classifier):
     return accuracy
 
 def print_results(train_acc,validation_acc,test_acc):
-      df = pd.DataFrame([(train_acc, *validation_acc) for train_acc, validation_acc in zip(train_acc,validation_acc)],
+      df = pd.DataFrame([x for x in zip(train_acc,validation_acc)],
                   columns=['train data evaluation','validation data evaluation'])
       print (df)
       df_test = pd.DataFrame(test_acc,columns=["test data evaluation"])
