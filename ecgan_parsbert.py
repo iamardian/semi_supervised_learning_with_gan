@@ -461,15 +461,16 @@ def load_best_model(load_path):
     return transformer2, classifier
 
 
-def save_best_model(save_path, epoch, accuracy,best_model_accuracy):
+def save_best_model(save_path, epoch, accuracy):
     print("call save_best_model")
     output_dir = save_path+"/best"
     print(f"output_dir : {output_dir}")
     create_path_if_not_exists(output_dir)
     create_path_if_not_exists(save_path)
     print(f"best_model_accuracy : {best_model_accuracy}")
+    global best_model_accuracy
     if best_model_accuracy >= accuracy:
-        return best_model_accuracy
+        return
     best_model_accuracy = accuracy
     best_model_path = os.path.join(save_path, f"{best_model_name}.pth")
     model_to_save = transformer.module if hasattr(
@@ -482,7 +483,6 @@ def save_best_model(save_path, epoch, accuracy,best_model_accuracy):
         'classifier_state_dict': classifier.state_dict(),
     }, best_model_path)
     print("Best model Saved")
-    return best_model_accuracy
 
 
 def print_validation_accuracy(index, acc):
@@ -760,7 +760,7 @@ def train(datasetloader):
         print("Epoch " + str(epoch_i+1) + " Complete")
         evaluation(epoch_i)
         validation_acc = validate(epoch_i)
-        best_model_accuracy = save_best_model(models_path, epoch_i, validation_acc,best_model_accuracy)
+        save_best_model(models_path, epoch_i, validation_acc)
         save_params(epoch_i, models_path)
 
 
