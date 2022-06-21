@@ -835,6 +835,12 @@ def test(transformer, classifier):
     print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
     return accuracy
 
+def print_results(train_acc,validation_acc,test_acc):
+      df = pd.DataFrame([(train_acc, *validation_acc) for train_acc, validation_acc in zip(train_acc,validation_acc)],
+                  columns=['train data evaluation','validation data evaluation'])
+      print (df)
+      df_test = pd.DataFrame(test_acc,columns=["test data evaluation"])
+      print(df_test)
 
 train(train_dataloader)
 
@@ -846,3 +852,5 @@ if transformer == False:
     print("an error occurred : load best model failed")
     exit()
 test(transformer, classifier)
+
+print_results(total_acc_evaluation,total_acc_validation,total_acc_test)
