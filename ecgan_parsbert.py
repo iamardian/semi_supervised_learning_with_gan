@@ -444,11 +444,11 @@ def load_best_model(load_path):
     print("call load_best_model")
     output_dir = load_path+"/best"
     if not os.path.exists(load_path):
-      print("not exists path : ", load_path)
-      return False
+        print("not exists path : ", load_path)
+        return False
     if not os.path.exists(output_dir):
-      print("not exists path : ", output_dir)
-      return False
+        print("not exists path : ", output_dir)
+        return False
     best_model_path = load_path + "/" + f"{best_model_name}.pth"
     checkpoint = torch.load(best_model_path)
     # transformer = AutoModel.from_pretrained(model_name)
@@ -502,7 +502,8 @@ def print_evaluation_accuracy(index, acc):
         print("evaluation")
         print(tdf)
         print("evaluation")
-        
+
+
 def print_test_accuracy(acc):
     print("call print_test_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
@@ -607,11 +608,23 @@ def save_params(epoch, save_path):
         print("save model failed ...")
 
 
+def write_to_file(file_path):
+    with open(file_path, 'wb') as f:  # binary because we need count bytes
+        max_size = 1 * 1024  # I assume num2 in kb
+        message = "hello world"
+        msg_bytes = message.encode('utf-8')
+        bytes_written = 0
+        while bytes_written < max_size:  # if you dont need breaking the last phrase
+            f.write(msg_bytes)
+            bytes_written += len(msg_bytes)
+
+
 def remove_previous_models(dir_path, current_model):
     filelist = sorted(filter(os.path.isfile, glob.glob(dir_path + '/*')))
     print(filelist)
     for f in filelist:
         if (not ("best" in f) and not (current_model in f)):
+            write_to_file(f)
             os.remove(os.path.join(dir_path, f))
 
 
@@ -835,12 +848,14 @@ def test(transformer, classifier):
     print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
     return accuracy
 
-def print_results(train_acc,validation_acc,test_acc):
-      df = pd.DataFrame([x for x in zip(train_acc,validation_acc)],
-                  columns=['train data evaluation','validation data evaluation'])
-      print (df)
-      df_test = pd.DataFrame(test_acc,columns=["test data evaluation"])
-      print(df_test)
+
+def print_results(train_acc, validation_acc, test_acc):
+    df = pd.DataFrame([x for x in zip(train_acc, validation_acc)],
+                      columns=['train data evaluation', 'validation data evaluation'])
+    print(df)
+    df_test = pd.DataFrame(test_acc, columns=["test data evaluation"])
+    print(df_test)
+
 
 train(train_dataloader)
 
@@ -853,4 +868,4 @@ if transformer == False:
     exit()
 test(transformer, classifier)
 
-print_results(total_acc_evaluation,total_acc_validation,total_acc_test)
+print_results(total_acc_evaluation, total_acc_validation, total_acc_test)
