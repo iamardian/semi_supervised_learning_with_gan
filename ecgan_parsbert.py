@@ -456,7 +456,7 @@ def load_best_model(load_path):
     # transformer.load_state_dict(checkpoint['transformer_state_dict'])
     classifier.load_state_dict(checkpoint['classifier_state_dict'])
     # tokenizer2 = tokenizer.from_pretrained(output_dir)
-    transformer2 = transformer.from_pretrained(output_dir)
+    transformer2 = AutoModel.from_pretrained(output_dir)
     return transformer2, classifier
 
 
