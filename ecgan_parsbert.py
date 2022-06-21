@@ -457,6 +457,7 @@ def load_best_model(load_path):
 def save_best_model(save_path, epoch, accuracy):
     print("call save_best_model")
     output_dir = os.path.join(save_path, "/best/")
+    create_path_if_not_exists(output_dir)
     create_path_if_not_exists(save_path)
     if best_model_accuracy >= accuracy:
         return
