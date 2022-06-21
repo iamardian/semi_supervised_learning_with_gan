@@ -575,16 +575,16 @@ def save_params(epoch, save_path):
             'total_acc_validation': total_acc_validation,
             'total_acc_evaluation': total_acc_evaluation,
         }, model_path_name)
-        remove_previous_models(save_path, epoch)
+        remove_previous_models(save_path, model_name_path)
     except:
         print("save model failed ...")
 
 
-def remove_previous_models(dir_path, epoch):
+def remove_previous_models(dir_path, current_model):
     filelist = sorted(filter(os.path.isfile, glob.glob(dir_path + '/*')))
     print(filelist)
     for f in filelist:
-        if (not ("best" in f) and not (f"{str(epoch).zfill(3)}" in f)):
+        if (not ("best" in f) and not (current_model in f)):
             os.remove(os.path.join(dir_path, f))
 
 
