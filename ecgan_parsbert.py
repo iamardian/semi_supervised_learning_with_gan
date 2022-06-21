@@ -461,7 +461,7 @@ def load_best_model(load_path):
     return transformer2, classifier
 
 
-def save_best_model(save_path, epoch, accuracy):
+def save_best_model(save_path, epoch, accuracy,best_model_accuracy):
     print("call save_best_model")
     output_dir = save_path+"/best"
     print(f"output_dir : {output_dir}")
@@ -759,7 +759,7 @@ def train(datasetloader):
         print("Epoch " + str(epoch_i+1) + " Complete")
         evaluation(epoch_i)
         validation_acc = validate(epoch_i)
-        save_best_model(models_path, epoch_i, validation_acc)
+        save_best_model(models_path, epoch_i, validation_acc,best_model_accuracy)
         save_params(epoch_i, models_path)
 
 
