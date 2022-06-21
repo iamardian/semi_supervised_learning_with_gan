@@ -829,6 +829,8 @@ train(train_dataloader)
 
 
 transformer, classifier = load_best_model(models_path)
+classifier.cuda()
+transformer.cuda()
 if transformer == False:
     print("an error occurred : load best model failed")
     exit()
