@@ -469,6 +469,8 @@ def save_best_model(save_path, epoch, accuracy):
     create_path_if_not_exists(save_path)
     if best_model_accuracy >= accuracy:
         return
+    global best_model_accuracy
+    best_model_accuracy = accuracy
     best_model_path = os.path.join(save_path, f"{best_model_name}.pth")
     model_to_save = transformer.module if hasattr(
         transformer, 'module') else transformer
