@@ -36,7 +36,7 @@ argumentList = sys.argv[1:]
 # Options
 options = "hd:p:w:t:e:"
 # Long options
-long_options = ["help", "dataset", "percentage", "weight", "thresh","epochs"]
+long_options = ["help", "dataset", "percentage", "weight", "thresh", "epochs"]
 
 dataset_name = "persiannews"
 percentage_labeled_data = 0.1
@@ -441,25 +441,33 @@ best_model_name = "best_model"
 
 def load_best_model(load_path):
     print("call load_best_model")
+    output_dir = os.path.join(load_path,"/best/")
+    transformer2 = transformer.from_pretrained(output_dir)
+    # tokenizer2 = tokenizer.from_pretrained(output_dir)
     best_model_path = load_path + "/" + f"{best_model_name}.pth"
     checkpoint = torch.load(best_model_path)
-    transformer = AutoModel.from_pretrained(model_name)
-    classifier = Classifier(input_size=hidden_size, hidden_sizes=hidden_levels_c,
-                            num_labels=len(label_list), dropout_rate=out_dropout_rate)
-    transformer.load_state_dict(checkpoint['transformer_state_dict'])
+    # transformer = AutoModel.from_pretrained(model_name)
+    # classifier = Classifier(input_size=hidden_size, hidden_sizes=hidden_levels_c,
+    #                         num_labels=len(label_list), dropout_rate=out_dropout_rate)
+    # transformer.load_state_dict(checkpoint['transformer_state_dict'])
     classifier.load_state_dict(checkpoint['classifier_state_dict'])
-    return transformer, classifier
+    return transformer2, classifier
 
 
 def save_best_model(save_path, epoch, accuracy):
     print("call save_best_model")
+    output_dir = os.path.join(save_path, "/best/")
     create_path_if_not_exists(save_path)
     if best_model_accuracy >= accuracy:
         return
     best_model_path = os.path.join(save_path, f"{best_model_name}.pth")
+    model_to_save = transformer.module if hasattr(
+        transformer, 'module') else transformer
+    model_to_save.save_pretrained(output_dir)
+    # tokenizer.save_pretrained(output_dir)
     torch.save({
         'epoch': epoch,
-        'transformer_state_dict': transformer.state_dict(),
+        # 'transformer_state_dict': transformer.state_dict(),
         'classifier_state_dict': classifier.state_dict(),
     }, best_model_path)
     print("Best model Saved")
@@ -496,15 +504,15 @@ def find_latest_model_name(dir_path):
     if len(files) == 0:
         return model_name
     for f in reversed(range(len(files))):
-          if "best" in files[f]:
-                continue
-          else:
-                model_name = files[f]
-                break
+        if "best" in files[f]:
+            continue
+        else:
+            model_name = files[f]
+            break
     return model_name
 
 
-def load_params(load_path,classifier,generator,discriminator,transformer,cfr_optimizer,gen_optimizer,dis_optimizer):
+def load_params(load_path, classifier, generator, discriminator, transformer, cfr_optimizer, gen_optimizer, dis_optimizer):
     print("call load_params")
     if not os.path.exists(load_path):
         print("not exists path : ", load_path)
@@ -590,7 +598,8 @@ def remove_previous_models(dir_path, current_model):
 
 def train(datasetloader):
     print("Training Start : ")
-    load_params(models_path,classifier,generator,discriminator,transformer,cfr_optimizer,gen_optimizer,dis_optimizer)
+    load_params(models_path, classifier, generator, discriminator,
+                transformer, cfr_optimizer, gen_optimizer, dis_optimizer)
     for epoch_i in range(offset+1, num_train_epochs):
 
         classifier.train()
