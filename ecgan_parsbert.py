@@ -446,8 +446,8 @@ def load_best_model(load_path):
     transformer = AutoModel.from_pretrained(model_name)
     classifier = Classifier(input_size=hidden_size, hidden_sizes=hidden_levels_c,
                             num_labels=len(label_list), dropout_rate=out_dropout_rate)
-    transformer.load_state(checkpoint['transformer_state_dict'])
-    classifier.load_state(checkpoint['classifier_state_dict'])
+    transformer.load_state_dict(checkpoint['transformer_state_dict'])
+    classifier.load_state_dict(checkpoint['classifier_state_dict'])
     return transformer, classifier
 
 
