@@ -853,11 +853,12 @@ def test(transformer, classifier):
 
 
 def print_results(train_acc, validation_acc, test_acc):
-    df = pd.DataFrame([x for x in zip(train_acc, validation_acc)],
-                      columns=['train data evaluation', 'validation data evaluation'])
-    print(df)
-    df_test = pd.DataFrame(test_acc, columns=["test data evaluation"])
-    print(df_test)
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+      df = pd.DataFrame([x for x in zip(train_acc, validation_acc)],
+                        columns=['train data evaluation', 'validation data evaluation'])
+      print(df)
+      df_test = pd.DataFrame(test_acc, columns=["test data evaluation"])
+      print(df_test)
 
 
 train(train_dataloader)
