@@ -441,7 +441,7 @@ best_model_name = "best_model"
 
 def load_best_model(load_path):
     print("call load_best_model")
-    output_dir = os.path.join(load_path,"/best/")
+    output_dir = load_path+"/best"
     if not os.path.exists(load_path):
       print("not exists path : ", load_path)
       return False
@@ -462,7 +462,7 @@ def load_best_model(load_path):
 
 def save_best_model(save_path, epoch, accuracy):
     print("call save_best_model")
-    output_dir = os.path.join(save_path, "/best")
+    output_dir = save_path+"/best"
     print(f"output_dir : {output_dir}")
     create_path_if_not_exists(output_dir)
     create_path_if_not_exists(save_path)
