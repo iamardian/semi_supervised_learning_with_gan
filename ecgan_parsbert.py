@@ -9,6 +9,7 @@ Original file is located at
 
 # !pip install transformers==4.3.2
 from genericpath import exists
+from sklearn.model_selection import train_test_split
 import glob
 import torch
 import os
@@ -167,6 +168,15 @@ label_list = list(set(lst_cnt))
 print(label_list)
 
 
+def get_labeled_example(file_path, size_of_data):
+    df = pd.read_csv(file_path, sep='\t')
+    x = df.content.to_list()
+    y = df.label_id.to_list()
+    X_train, _, y_train, _ = train_test_split(
+        x, y, train_size=size_of_data, random_state=42, stratify=y)
+    return list(zip(X_train, y_train))
+
+
 def get_qc_examples(input_file):
     """Creates examples for the training and dev sets."""
 
@@ -180,10 +190,12 @@ def get_qc_examples(input_file):
 """Load the PersianNews and Digimag Datasets then separate labeled and unlabeled data."""
 
 # Load the examples
-labeled_examples = get_qc_examples(labeled_file)
-subset = np.random.permutation([i for i in range(len(labeled_examples))])
-number_of_sample = subset[:int(len(labeled_examples) * (dataSizeConstant))]
-labeled_examples = [labeled_examples[i] for i in number_of_sample]
+labeled_examples = get_labeled_example(labeled_file, dataSizeConstant)
+# subset = np.random.permutation([i for i in range(len(labeled_examples))])
+# number_of_sample = subset[:int(len(labeled_examples) * (dataSizeConstant))]
+# labeled_examples = [labeled_examples[i] for i in number_of_sample]
+
+
 validation_examples = get_qc_examples(validation_file)
 test_examples = get_qc_examples(test_filename)
 
@@ -854,11 +866,11 @@ def test(transformer, classifier):
 
 def print_results(train_acc, validation_acc, test_acc):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-      df = pd.DataFrame([x for x in zip(train_acc, validation_acc)],
-                        columns=['train data evaluation', 'validation data evaluation'])
-      print(df)
-      df_test = pd.DataFrame(test_acc, columns=["test data evaluation"])
-      print(df_test)
+        df = pd.DataFrame([x for x in zip(train_acc, validation_acc)],
+                          columns=['train data evaluation', 'validation data evaluation'])
+        print(df)
+        df_test = pd.DataFrame(test_acc, columns=["test data evaluation"])
+        print(df_test)
 
 
 train(train_dataloader)
