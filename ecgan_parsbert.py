@@ -872,7 +872,7 @@ def print_results(train_acc, validation_acc, test_acc):
     execl_path = default_path_str + dir_name + ".xlsx"
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         df = pd.DataFrame(data=[train_acc,validation_acc,test_acc],columns=titles)
-        df.to_excel(execl_path)
+        df.to_excel(execl_path,index=False)
         print(df)
 
 train(train_dataloader)
