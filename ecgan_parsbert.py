@@ -501,7 +501,8 @@ def print_validation_accuracy(index, acc):
     print("call print_validation_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         title = ["epoch", "acc"]
-        total_acc_validation.append([index, acc])
+        # total_acc_validation.append([index, acc])
+        total_acc_validation.append(acc)
         tdf = pd.DataFrame(total_acc_validation, columns=title)
         print("validation")
         print(tdf)
@@ -512,7 +513,7 @@ def print_evaluation_accuracy(index, acc):
     print("call print_evaluation_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         title = ["epoch", "acc"]
-        total_acc_evaluation.append([index, acc])
+        total_acc_evaluation.append(acc)
         tdf = pd.DataFrame(total_acc_evaluation, columns=title)
         print("evaluation")
         print(tdf)
