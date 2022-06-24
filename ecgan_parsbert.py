@@ -500,10 +500,10 @@ def save_best_model(save_path, epoch, accuracy):
 def print_validation_accuracy(index, acc):
     print("call print_validation_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        title = ["epoch", "acc"]
+        # title = ["epoch", "acc"]
         # total_acc_validation.append([index, acc])
         total_acc_validation.append(acc)
-        tdf = pd.DataFrame(total_acc_validation, columns=title)
+        tdf = pd.DataFrame(total_acc_validation)
         print("validation")
         print(tdf)
         print("validation")
@@ -512,9 +512,9 @@ def print_validation_accuracy(index, acc):
 def print_evaluation_accuracy(index, acc):
     print("call print_evaluation_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        title = ["epoch", "acc"]
+        # title = ["epoch", "acc"]
         total_acc_evaluation.append(acc)
-        tdf = pd.DataFrame(total_acc_evaluation, columns=title)
+        tdf = pd.DataFrame(total_acc_evaluation)
         print("evaluation")
         print(tdf)
         print("evaluation")
@@ -524,7 +524,7 @@ def print_test_accuracy(acc):
     print("call print_test_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         title = ["acc"]
-        total_acc_test.append([acc])
+        total_acc_test.append(acc)
         tdf = pd.DataFrame(total_acc_test, columns=title)
         print("test")
         print(tdf)
