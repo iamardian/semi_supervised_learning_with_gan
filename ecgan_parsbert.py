@@ -496,6 +496,7 @@ def save_best_model(save_path, epoch, accuracy):
     create_path_if_not_exists(save_path)
     global best_model_accuracy
     if best_model_accuracy >= accuracy:
+        print(f"best_model_accuracy : {best_model_accuracy}")
         return
     best_model_accuracy = accuracy
     print(f"best_model_accuracy : {best_model_accuracy}")
