@@ -461,7 +461,7 @@ total_acc_test = []
 
 best_model_accuracy = 0
 default_path_str = "/content/drive/MyDrive/NLP/save/"
-dir_name = f"ec_gan|{dataset_name}|{percentage_labeled_data}|{adversarial_weight}|{confidence_thresh}"
+dir_name = f"ec_gan|{dataset_name}|{percentage_labeled_data}|{adversarial_weight}|{confidence_thresh}|{num_epochs}|{balance_label}"
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
 
