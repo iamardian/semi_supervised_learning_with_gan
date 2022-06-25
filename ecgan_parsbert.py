@@ -27,7 +27,13 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 #!pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 -f https://download.pytorch.org/whl/torch_stable.html
 #!pip install sentencepiece
 
-
+def print_params(params):
+    param_list = []
+    cols = ["param","value"]
+    for x in params:
+        param_list.append([x,params[x]])
+    df = pd.DataFrame(param_list,columns=cols)
+    print(df.to_string(index=False))
 ##########################
 # GET PARAMS WITH SWITCH
 ##########################
@@ -69,8 +75,8 @@ except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
 
-print("Dataset : {} \nPercentage : {}".format(
-    dataset_name, percentage_labeled_data))
+# print("Dataset : {} \nPercentage : {}".format(
+#     dataset_name, percentage_labeled_data))
 
 
 # Set random values
@@ -85,11 +91,11 @@ if torch.cuda.is_available():
 if torch.cuda.is_available():
     # Tell PyTorch to use the GPU.
     device = torch.device("cuda")
-    print('There are %d GPU(s) available.' % torch.cuda.device_count())
-    print('We will use the GPU:', torch.cuda.get_device_name(0))
+    # print('There are %d GPU(s) available.' % torch.cuda.device_count())
+    # print('We will use the GPU:', torch.cuda.get_device_name(0))
 # If not...
 else:
-    print('No GPU available, using the CPU instead.')
+    # print('No GPU available, using the CPU instead.')
     device = torch.device("cpu")
 
 """### Input Parameters
@@ -155,9 +161,9 @@ labeled_file = "./{}/train.csv".format(dataset)
 validation_file = "./{}/dev.csv".format(dataset)
 test_filename = "./{}/test.csv".format(dataset)
 
-print(labeled_file)
-print(validation_file)
-print(test_filename)
+# print(labeled_file)
+# print(validation_file)
+# print(test_filename)
 
 """Load the Tranformer Model"""
 
@@ -169,7 +175,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 df = pd.read_csv(labeled_file, sep='\t')
 lst_cnt = df.label_id.to_list()
 label_list = list(set(lst_cnt))
-print(label_list)
+# print(label_list)
 
 
 def get_balance_labeled_example(file_path, size_of_data):
@@ -459,15 +465,25 @@ dir_name = f"ec_gan|{dataset_name}|{percentage_labeled_data}|{adversarial_weight
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
 
+params_obj = {
+    "Dataset":dataset_name,
+    "Percentage":percentage_labeled_data,
+    "Adversarial Weight":adversarial_weight,
+    "Epochs":num_epochs,
+    "Balance label":balance_label,
+    "Batch size":batch_size,
+    "Model name":model_name
+}
+print_params(params_obj)
 
 def load_best_model(load_path):
-    print("call load_best_model")
+    # print("call load_best_model")
     output_dir = load_path+"/best"
     if not os.path.exists(load_path):
-        print("not exists path : ", load_path)
+        # print("not exists path : ", load_path)
         return False
     if not os.path.exists(output_dir):
-        print("not exists path : ", output_dir)
+        # print("not exists path : ", output_dir)
         return False
     best_model_path = load_path + "/" + f"{best_model_name}.pth"
     checkpoint = torch.load(best_model_path)
@@ -482,16 +498,16 @@ def load_best_model(load_path):
 
 
 def save_best_model(save_path, epoch, accuracy):
-    print("call save_best_model")
+    # print("call save_best_model")
     output_dir = save_path+"/best"
-    print(f"output_dir : {output_dir}")
+    # print(f"output_dir : {output_dir}")
     create_path_if_not_exists(output_dir)
     create_path_if_not_exists(save_path)
     global best_model_accuracy
-    print(f"best_model_accuracy : {best_model_accuracy}")
     if best_model_accuracy >= accuracy:
         return
     best_model_accuracy = accuracy
+    print(f"best_model_accuracy : {best_model_accuracy}")
     best_model_path = os.path.join(save_path, f"{best_model_name}.pth")
     model_to_save = transformer.module if hasattr(
         transformer, 'module') else transformer
@@ -502,45 +518,45 @@ def save_best_model(save_path, epoch, accuracy):
         # 'transformer_state_dict': transformer.state_dict(),
         'classifier_state_dict': classifier.state_dict(),
     }, best_model_path)
-    print("Best model Saved")
+    # print("Best model Saved")
 
 
 def print_validation_accuracy(index, acc):
-    print("call print_validation_accuracy")
+    # print("call print_validation_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         # title = ["epoch", "acc"]
         # total_acc_validation.append([index, acc])
         total_acc_validation.append(acc)
         tdf = pd.DataFrame(total_acc_validation)
-        print("validation")
-        print(tdf)
-        print("validation")
+        # print("validation")
+        # print(tdf)
+        # print("validation")
 
 
 def print_evaluation_accuracy(index, acc):
-    print("call print_evaluation_accuracy")
+    # print("call print_evaluation_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         # title = ["epoch", "acc"]
         total_acc_evaluation.append(acc)
         tdf = pd.DataFrame(total_acc_evaluation)
-        print("evaluation")
-        print(tdf)
-        print("evaluation")
+        # print("evaluation")
+        # print(tdf)
+        # print("evaluation")
 
 
 def print_test_accuracy(acc):
-    print("call print_test_accuracy")
+    # print("call print_test_accuracy")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         title = ["acc"]
         total_acc_test.append(acc)
         tdf = pd.DataFrame(total_acc_test, columns=title)
-        print("test")
-        print(tdf)
-        print("test")
+        # print("test")
+        # print(tdf)
+        # print("test")
 
 
 def find_latest_model_name(dir_path):
-    print("call find_latest_model_name")
+    # print("call find_latest_model_name")
     model_name = ""
     if not os.path.exists(dir_path):
         return model_name
@@ -557,19 +573,19 @@ def find_latest_model_name(dir_path):
 
 
 def load_params(load_path, classifier, generator, discriminator, transformer, cfr_optimizer, gen_optimizer, dis_optimizer):
-    print("call load_params")
+    # print("call load_params")
     if not os.path.exists(load_path):
-        print("not exists path : ", load_path)
+        # print("not exists path : ", load_path)
         return
     model_path = find_latest_model_name(load_path)
-    print(f"latest model : {model_path}")
+    # print(f"latest model : {model_path}")
     if model_path == "":
         return
-    print(f"model_path : {model_path}")
+    # print(f"model_path : {model_path}")
     checkpoint = torch.load(model_path)
     global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses, total_acc_validation, total_acc_evaluation
     offset = checkpoint['epoch']
-    print(f"offset : {offset}")
+    # print(f"offset : {offset}")
     best_model_accuracy = checkpoint['best_model_accuracy']
 
     transformer.load_state_dict(checkpoint['transformer_state_dict'])
@@ -592,15 +608,15 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
 
 
 def create_path_if_not_exists(dir_path):
-    print("call create_path_if_not_exists")
-    print(f"dir_path : {dir_path}")
+    # print("call create_path_if_not_exists")
+    # print(f"dir_path : {dir_path}")
     if os.path.exists(dir_path):
         return
     os.makedirs(dir_path, exist_ok=True)
 
 
 def save_params(epoch, save_path):
-    print("call save_params")
+    # print("call save_params")
     try:
         create_path_if_not_exists(save_path)
         model_name_path = f'{str(epoch).zfill(3)}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
@@ -645,7 +661,7 @@ def write_to_file(file_path):
 
 def remove_previous_models(dir_path, current_model):
     filelist = sorted(filter(os.path.isfile, glob.glob(dir_path + '/*')))
-    print(filelist)
+    # print(filelist)
     for f in filelist:
         if (not ("best" in f) and not (current_model in f)):
             write_to_file(f)
@@ -779,6 +795,7 @@ def train(datasetloader):
             #   classifier.train()
 
         print("Epoch " + str(epoch_i+1) + " Complete")
+        print("Epoch Time : ",time.time()-t0)
         evaluation(epoch_i)
         validation_acc = validate(epoch_i)
         save_best_model(models_path, epoch_i, validation_acc)
@@ -786,7 +803,7 @@ def train(datasetloader):
 
 
 def validate(epoch):
-    print("call validate")
+    # print("call validate")
     classifier.eval()
 
     correct = 0
@@ -812,13 +829,13 @@ def validate(epoch):
 
     accuracy = (correct / total) * 100
     print_validation_accuracy(epoch+1, accuracy)
-    print("validate : {} / {} * 100 = {} ".format(correct, total, accuracy))
+    # print("validate : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
     return accuracy
 
 
 def evaluation(epoch):
-    print("call evaluation")
+    # print("call evaluation")
 
     classifier.eval()
 
@@ -841,13 +858,13 @@ def evaluation(epoch):
 
     accuracy = (correct / total) * 100
     print_evaluation_accuracy(epoch+1, accuracy)
-    print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
+    # print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
     return accuracy
 
 
 def test(transformer, classifier):
-    print("call test")
+    # print("call test")
     classifier.eval()
 
     correct = 0
@@ -869,7 +886,7 @@ def test(transformer, classifier):
 
     accuracy = (correct / total) * 100
     print_test_accuracy(accuracy)
-    print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
+    # print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
     return accuracy
 
 
