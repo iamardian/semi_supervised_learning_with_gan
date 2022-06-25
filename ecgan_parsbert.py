@@ -35,15 +35,17 @@ import getopt
 import sys
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:"
+options = "hd:p:w:t:e:l"
 # Long options
-long_options = ["help", "dataset", "percentage", "weight", "thresh", "epochs"]
+long_options = ["help", "dataset", "percentage",
+                "weight", "thresh", "epochs", "label_balance"]
 
 dataset_name = "persiannews"
 percentage_labeled_data = 0.1
 adversarial_weight = 0.1
 confidence_thresh = 0.2
 num_epochs = 10
+balance_label = False
 try:
     # Parsing argument
     arguments, values = getopt.getopt(argumentList, options, long_options)
@@ -61,6 +63,8 @@ try:
             confidence_thresh = float(currentValue)
         elif currentArgument in ("-e", "--epochs"):
             num_epochs = int(currentValue)
+        elif currentArgument in ("-l", "--label_balance"):
+            balance_label = bool(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -168,7 +172,7 @@ label_list = list(set(lst_cnt))
 print(label_list)
 
 
-def get_labeled_example(file_path, size_of_data):
+def get_balance_labeled_example(file_path, size_of_data):
     df = pd.read_csv(file_path, sep='\t')
     x = df.content.to_list()
     y = df.label_id.to_list()
@@ -190,10 +194,14 @@ def get_qc_examples(input_file):
 """Load the PersianNews and Digimag Datasets then separate labeled and unlabeled data."""
 
 # Load the examples
-labeled_examples = get_labeled_example(labeled_file, dataSizeConstant)
-# subset = np.random.permutation([i for i in range(len(labeled_examples))])
-# number_of_sample = subset[:int(len(labeled_examples) * (dataSizeConstant))]
-# labeled_examples = [labeled_examples[i] for i in number_of_sample]
+if balance_label:
+    labeled_examples = get_balance_labeled_example(
+        labeled_file, dataSizeConstant)
+else:
+    labeled_examples = get_qc_examples(labeled_file)
+    subset = np.random.permutation([i for i in range(len(labeled_examples))])
+    number_of_sample = subset[:int(len(labeled_examples) * (dataSizeConstant))]
+    labeled_examples = [labeled_examples[i] for i in number_of_sample]
 
 
 validation_examples = get_qc_examples(validation_file)
@@ -872,9 +880,11 @@ def print_results(train_acc, validation_acc, test_acc):
     titles = [x for x in range(len(train_acc))]
     execl_path = default_path_str + dir_name + ".xlsx"
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-        df = pd.DataFrame(data=[train_acc,validation_acc,test_acc],columns=titles)
-        df.to_excel(execl_path,index=False)
+        df = pd.DataFrame(
+            data=[train_acc, validation_acc, test_acc], columns=titles)
+        df.to_excel(execl_path, index=False)
         print(df)
+
 
 train(train_dataloader)
 
