@@ -900,7 +900,7 @@ def print_results(train_acc, validation_acc, test_acc):
         df = pd.DataFrame(
             data=[train_acc, validation_acc, test_acc], columns=titles)
         df.to_excel(execl_path, index=False)
-        print(df)
+        # print(df)
 
 
 train(train_dataloader)
