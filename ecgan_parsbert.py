@@ -1,5 +1,7 @@
 
 # !pip install transformers==4.3.2
+import sys
+import getopt
 from genericpath import exists
 from sklearn.model_selection import train_test_split
 import glob
@@ -19,24 +21,25 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 #!pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 -f https://download.pytorch.org/whl/torch_stable.html
 #!pip install sentencepiece
 
+
 def print_params(params):
     param_list = []
-    cols = ["param","value"]
+    cols = ["param", "value"]
     for x in params:
-        param_list.append([x,params[x]])
-    df = pd.DataFrame(param_list,columns=cols)
+        param_list.append([x, params[x]])
+    df = pd.DataFrame(param_list, columns=cols)
     print(df.to_string(index=False))
+
+
 ##########################
 # GET PARAMS WITH SWITCH
 ##########################
-import getopt
-import sys
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:l:"
+options = "hd:p:w:t:e:l:m:"
 # Long options
 long_options = ["help", "dataset", "percentage",
-                "weight", "thresh", "epochs", "label_balance"]
+                "weight", "thresh", "epochs", "label_balance", "mode"]
 
 dataset_name = "persiannews"
 percentage_labeled_data = 0.1
@@ -44,6 +47,7 @@ adversarial_weight = 0.1
 confidence_thresh = 0.2
 num_epochs = 10
 balance_label = False
+train_BERT_mode = 0  # 0 = freeze | -1 = full | positive number = n latest layer of BERT
 try:
     # Parsing argument
     arguments, values = getopt.getopt(argumentList, options, long_options)
@@ -63,6 +67,8 @@ try:
             num_epochs = int(currentValue)
         elif currentArgument in ("-l", "--label_balance"):
             balance_label = bool(currentValue)
+        elif currentArgument in ("-m", "--mode"):
+            train_BERT_mode0000 = int(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -428,8 +434,25 @@ generatorLosses = []
 discriminatorLosses = []
 classifierLosses = []
 
+
+def bert_params_for_tune(params, mode):
+    if mode < 0:
+        return params
+    else:
+        x = len(params) - mode
+        return params[x:]
+
+
+def grad_false(bert_params):
+    for param in bert_params:
+        param.requires_grad = False
+
+
 # models parameters
-transformer_vars = [i for i in transformer.parameters()]
+transformer_params = [x for i, x in enumerate(transformer.parameters())]
+transformer_vars = bert_params_for_tune(transformer_params, train_BERT_mode)
+grad_false(transformer_vars)
+
 d_vars = [v for v in discriminator.parameters()]
 c_vars = transformer_vars + [v for v in classifier.parameters()]
 # c_vars = [v for v in classifier.parameters()]
@@ -452,20 +475,22 @@ total_acc_test = []
 
 best_model_accuracy = 0
 default_path_str = "/content/drive/MyDrive/NLP/save/"
-dir_name = f"ec_gan|{dataset_name}|{percentage_labeled_data}|{adversarial_weight}|{confidence_thresh}|{num_epochs}|{balance_label}"
+dir_name = f"ec_gan|{dataset_name}|{percentage_labeled_data}|{adversarial_weight}|{confidence_thresh}|{num_epochs}|{balance_label}|{train_BERT_mode}"
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
 
 params_obj = {
-    "Dataset":dataset_name,
-    "Percentage":percentage_labeled_data,
-    "Adversarial Weight":adversarial_weight,
-    "Epochs":num_epochs,
-    "Balance label":balance_label,
-    "Batch size":batch_size,
-    "Model name":model_name
+    "Dataset": dataset_name,
+    "Percentage": percentage_labeled_data,
+    "Adversarial Weight": adversarial_weight,
+    "Epochs": num_epochs,
+    "Balance label": balance_label,
+    "Batch size": batch_size,
+    "Model name": model_name,
+    "train_BERT_mode" : train_BERT_mode
 }
 print_params(params_obj)
+
 
 def load_best_model(load_path):
     # print("call load_best_model")
@@ -787,7 +812,7 @@ def train(datasetloader):
             #   classifier.train()
 
         print("Epoch " + str(epoch_i+1) + " Complete")
-        print("Epoch Time : ",time.time()-t0)
+        print("Epoch Time : ", time.time()-t0)
         evaluation(epoch_i)
         validation_acc = validate(epoch_i)
         save_best_model(models_path, epoch_i, validation_acc)
@@ -821,7 +846,7 @@ def validate(epoch):
 
     accuracy = (correct / total) * 100
     print(f"validation Accuracy : {accuracy}")
-    
+
     print_validation_accuracy(epoch+1, accuracy)
     # print("validate : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
@@ -852,7 +877,7 @@ def evaluation(epoch):
 
     accuracy = (correct / total) * 100
     print(f"evaluation Accuracy : {accuracy}")
-    
+
     print_evaluation_accuracy(epoch+1, accuracy)
     # print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
@@ -883,7 +908,7 @@ def test(transformer, classifier):
 
     accuracy = (correct / total) * 100
     print(f"Test Accuracy : {accuracy}")
-    
+
     print_test_accuracy(accuracy)
     # print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
     return accuracy
