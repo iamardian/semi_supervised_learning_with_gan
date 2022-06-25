@@ -860,7 +860,8 @@ def evaluation(epoch):
 
 
 def test(transformer, classifier):
-    # print("call test")
+    print()
+    print("Start Testing ...")
     classifier.eval()
 
     correct = 0
