@@ -887,7 +887,7 @@ def print_results(train_acc, validation_acc, test_acc):
     validation_acc.insert(0, "validation")
     test_acc.insert(0, "test")
     titles = [x for x in range(len(train_acc))]
-    execl_path = default_path_str + dir_name + ".xlsx"
+    execl_path = default_path_str + dir_name + f"/{dir_name}.xlsx"
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         df = pd.DataFrame(
             data=[train_acc, validation_acc, test_acc], columns=titles)
