@@ -820,6 +820,8 @@ def validate(epoch):
             correct += (predicted == b_labels).sum().item()
 
     accuracy = (correct / total) * 100
+    print(f"validation Accuracy : {accuracy}")
+    
     print_validation_accuracy(epoch+1, accuracy)
     # print("validate : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
@@ -849,6 +851,8 @@ def evaluation(epoch):
             correct += (predicted == b_labels).sum().item()
 
     accuracy = (correct / total) * 100
+    print(f"evaluation Accuracy : {accuracy}")
+    
     print_evaluation_accuracy(epoch+1, accuracy)
     # print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
@@ -877,6 +881,8 @@ def test(transformer, classifier):
             correct += (predicted == b_labels).sum().item()
 
     accuracy = (correct / total) * 100
+    print(f"Test Accuracy : {accuracy}")
+    
     print_test_accuracy(accuracy)
     # print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
     return accuracy
