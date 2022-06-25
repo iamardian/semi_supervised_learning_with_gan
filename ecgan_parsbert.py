@@ -447,11 +447,15 @@ def grad_false(bert_params):
     for param in bert_params:
         param.requires_grad = False
 
+def grad_true(bert_params):
+    for param in bert_params:
+        param.requires_grad = True
 
 # models parameters
 transformer_params = [x for i, x in enumerate(transformer.parameters())]
+grad_false(transformer_params)
 transformer_vars = bert_params_for_tune(transformer_params, train_BERT_mode)
-grad_false(transformer_vars)
+grad_true(transformer_vars)
 
 d_vars = [v for v in discriminator.parameters()]
 c_vars = transformer_vars + [v for v in classifier.parameters()]
