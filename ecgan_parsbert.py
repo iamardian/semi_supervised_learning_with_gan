@@ -439,28 +439,17 @@ def print_model_params(model):
         print(item.requires_grad)
 
 def bert_params_for_tune(model, mode):
-    params = model.parameters()
-    for param in params:
+    for param in model.embeddings.parameters():
         param.requires_grad = False
-
-    # layers = model.encoder.layer[:mode]
-    # for layer in layers:
-    #     for param in layer.parameters():
-    #         param.requires_grad = False
-
-    return model
-    # params = model.encoder.layer
-    # if mode < 0:
-    #     return [x for x in params]
-    # else:
-    #     for i,param in enumerate(params):
-    #         if i < (len(params)-mode):
-    #             param.requires_grad = False
-    #     return model
+    
+    for param in list(model.encoder.layer[:mode].parameters()):
+        param.requires_grad = False
+    
+    return [x for x in model.parameters()]
 
 
 # models parameters
-# transformer_params = [x for i, x in enumerate(transformer.parameters())]
+# transformer_params = [x for x in transformer.parameters()]
 print("========================== BEFORE ==========================")
 print_model_params(transformer)
 
