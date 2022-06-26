@@ -434,17 +434,24 @@ generatorLosses = []
 discriminatorLosses = []
 classifierLosses = []
 
+
 def print_model_params(model):
     for item in model.parameters():
         print(item.requires_grad)
 
+
 def bert_params_for_tune(model, mode):
     for param in model.embeddings.parameters():
         param.requires_grad = False
-    
-    for param in list(model.encoder.layer[:mode].parameters()):
-        param.requires_grad = False
-    
+    layers = model.encoder.layer
+    for i, layer in enumerate(layers):
+        if i < len(layers) - mode:
+            params = layer.parameters()
+            for param in params:
+                param.requires_grad = False
+        else:
+            break
+
     return [x for x in model.parameters()]
 
 
