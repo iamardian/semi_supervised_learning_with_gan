@@ -439,11 +439,13 @@ def bert_params_for_tune(model, mode):
     emb = model.embeddings.parameters()
     for param in emb:
         param.requires_grad = False
-    
+
     layers = model.encoder.layer[:mode]
     for layer in layers:
         for param in layer.parameters():
             param.requires_grad = False
+
+    return model
     # params = model.encoder.layer
     # if mode < 0:
     #     return [x for x in params]
@@ -452,7 +454,6 @@ def bert_params_for_tune(model, mode):
     #         if i < (len(params)-mode):
     #             param.requires_grad = False
     #     return model
-
 
 
 # models parameters
@@ -493,7 +494,7 @@ params_obj = {
     "Balance label": balance_label,
     "Batch size": batch_size,
     "Model name": model_name,
-    "train_BERT_mode" : train_BERT_mode
+    "train_BERT_mode": train_BERT_mode
 }
 print_params(params_obj)
 
