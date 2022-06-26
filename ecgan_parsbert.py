@@ -68,7 +68,7 @@ try:
         elif currentArgument in ("-l", "--label_balance"):
             balance_label = bool(currentValue)
         elif currentArgument in ("-m", "--mode"):
-            train_BERT_mode0000 = int(currentValue)
+            train_BERT_mode = int(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -441,8 +441,12 @@ def print_model_params(model):
 
 
 def bert_params_for_tune(model, mode):
+    if mode < 0:
+        return [x for x in model.parameters()]
+
     for param in model.embeddings.parameters():
         param.requires_grad = False
+
     layers = model.encoder.layer
     print(len(layers))
     for i, layer in enumerate(layers):
