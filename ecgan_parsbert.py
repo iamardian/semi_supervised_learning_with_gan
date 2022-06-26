@@ -444,6 +444,7 @@ def bert_params_for_tune(model, mode):
     for param in model.embeddings.parameters():
         param.requires_grad = False
     layers = model.encoder.layer
+    print(len(layers))
     for i, layer in enumerate(layers):
         if i < len(layers) - mode:
             params = layer.parameters()
