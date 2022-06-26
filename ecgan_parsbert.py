@@ -140,7 +140,7 @@ epsilon = 1e-8
 
 num_train_epochs = num_epochs
 
-multi_gpu = True
+multi_gpu = False
 # Scheduler
 apply_scheduler = False
 warmup_proportion = 0.1
