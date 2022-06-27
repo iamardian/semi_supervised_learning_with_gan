@@ -923,6 +923,8 @@ def test(transformer, classifier):
             outputs = classifier(hidden_states)
             _, predicted = torch.max(outputs.data, 1)
             total += b_labels.size(0)
+            print(f"predicted : {predicted}")
+            print(f"b_labels : {b_labels}")
             correct += (predicted == b_labels).sum().item()
 
     accuracy = (correct / total) * 100
