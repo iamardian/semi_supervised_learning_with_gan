@@ -855,7 +855,7 @@ def per_label_accuracy(b_labels, predicted, class_accuracies):
         label_indexes = torch.where((b_labels == label))[0]
         number_of_label = len(label_indexes)
         predicts = [predicted[i] for i in label_indexes]
-        true_predicts = torch.sum((predicts == label))
+        true_predicts = np.sum((predicts == label))
         if label in class_accuracies.keys():
             class_accuracies[label]["true_predict"] = true_predicts + \
                 class_accuracies[label]["true_predict"]
