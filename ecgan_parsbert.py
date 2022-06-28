@@ -15,6 +15,7 @@ import pandas as pd
 import time
 import math
 import datetime
+import xlsxwriter
 import torch.nn as nn
 from transformers import *
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
@@ -492,6 +493,10 @@ total_acc_validation = []
 total_acc_evaluation = []
 total_acc_test = []
 
+total_label_base_accuracy_validation = []
+total_label_base_accuracy_evaluation = []
+total_label_base_accuracy_test = []
+
 best_model_accuracy = 0
 default_path_str = "/content/drive/MyDrive/NLP/save/"
 dir_name = f"ec_gan|{dataset_name}|{percentage_labeled_data}|{adversarial_weight}|{confidence_thresh}|{num_epochs}|{balance_label}|{train_BERT_mode}"
@@ -619,7 +624,7 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
         return
     # print(f"model_path : {model_path}")
     checkpoint = torch.load(model_path)
-    global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses, total_acc_validation, total_acc_evaluation
+    global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses, total_acc_validation, total_acc_evaluation, total_label_base_accuracy_validation, total_label_base_accuracy_evaluation, total_label_base_accuracy_test
     offset = checkpoint['epoch']
     # print(f"offset : {offset}")
     best_model_accuracy = checkpoint['best_model_accuracy']
@@ -641,6 +646,9 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
 
     total_acc_validation = checkpoint['total_acc_validation']
     total_acc_evaluation = checkpoint['total_acc_evaluation']
+    total_label_base_accuracy_validation = checkpoint['total_label_base_accuracy_validation']
+    total_label_base_accuracy_evaluation = checkpoint['total_label_base_accuracy_evaluation']
+    total_label_base_accuracy_test = checkpoint['total_label_base_accuracy_test']
 
 
 def create_path_if_not_exists(dir_path):
@@ -678,6 +686,9 @@ def save_params(epoch, save_path):
 
             'total_acc_validation': total_acc_validation,
             'total_acc_evaluation': total_acc_evaluation,
+            'total_label_base_accuracy_validation': total_label_base_accuracy_validation,
+            'total_label_base_accuracy_evaluation': total_label_base_accuracy_evaluation,
+            'total_label_base_accuracy_test': total_label_base_accuracy_test,
         }, model_path_name)
         remove_previous_models(save_path, model_name_path)
     except:
@@ -838,6 +849,50 @@ def train(datasetloader):
         save_params(epoch_i, models_path)
 
 
+def per_label_accuracy(b_labels, predicted, class_accuracies):
+    labels = np.unique(b_labels)
+    for label in labels:
+        label_indexes = np.where((b_labels == label))[0]
+        number_of_label = len(label_indexes)
+        predicts = [predicted[i] for i in label_indexes]
+        true_predicts = np.sum((predicts == label))
+        if label in class_accuracies.keys():
+            class_accuracies[label]["true_predict"] = true_predicts + \
+                class_accuracies[label]["true_predict"]
+            class_accuracies[label]["total"] = number_of_label + \
+                class_accuracies[label]["total"]
+        else:
+            class_accuracies[label] = {
+                "true_predict": true_predicts, "total": number_of_label}
+
+
+def print_validation_per_class_accuracy_validation(class_accuracies):
+    total_label_base_accuracy_validation.append(class_accuracies)
+    for x in class_accuracies:
+        acc = (class_accuracies[x]["true_predict"] /
+               class_accuracies[x]["total"])*100
+        print(
+            f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
+
+
+def print_validation_per_class_accuracy_evaluation(class_accuracies):
+    total_label_base_accuracy_evaluation.append(class_accuracies)
+    for x in class_accuracies:
+        acc = (class_accuracies[x]["true_predict"] /
+               class_accuracies[x]["total"])*100
+        print(
+            f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
+
+
+def print_validation_per_class_accuracy_test(class_accuracies):
+    total_label_base_accuracy_test.append(class_accuracies)
+    for x in class_accuracies:
+        acc = (class_accuracies[x]["true_predict"] /
+               class_accuracies[x]["total"])*100
+        print(
+            f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
+
+
 def validate(epoch):
     # print("call validate")
     classifier.eval()
@@ -845,14 +900,12 @@ def validate(epoch):
     correct = 0
     total = 0
     with torch.no_grad():
+        class_accuracies = {}
         for data in validation_dataloader:
 
             b_input_ids = data[0].to(device)
             b_input_mask = data[1].to(device)
             b_labels = data[2].to(device)
-
-            # inputs, labels = data
-            # inputs, labels = data[0].to(device), data[1].to(device)
 
             model_outputs = transformer(
                 b_input_ids, attention_mask=b_input_mask)
@@ -860,12 +913,15 @@ def validate(epoch):
 
             outputs = classifier(hidden_states)
             _, predicted = torch.max(outputs.data, 1)
+
             total += b_labels.size(0)
             correct += (predicted == b_labels).sum().item()
 
+            per_label_accuracy(b_labels, predicted, class_accuracies)
+
     accuracy = (correct / total) * 100
     print(f"validation Accuracy : {accuracy}")
-
+    print_validation_per_class_accuracy_validation(class_accuracies)
     print_validation_accuracy(epoch+1, accuracy)
     # print("validate : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
@@ -880,6 +936,7 @@ def evaluation(epoch):
     correct = 0
     total = 0
     with torch.no_grad():
+        class_accuracies = {}
         for data in train_dataloader:
 
             b_input_ids = data[0].to(device)
@@ -895,11 +952,13 @@ def evaluation(epoch):
             print(f"b_labels : {b_labels}")
             total += b_labels.size(0)
             correct += (predicted == b_labels).sum().item()
+            per_label_accuracy(b_labels, predicted, class_accuracies)
 
     accuracy = (correct / total) * 100
     print(f"evaluation Accuracy : {accuracy}")
 
     print_evaluation_accuracy(epoch+1, accuracy)
+    print_validation_per_class_accuracy_evaluation(class_accuracies)
     # print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
     classifier.train()
     return accuracy
@@ -913,6 +972,7 @@ def test(transformer, classifier):
     correct = 0
     total = 0
     with torch.no_grad():
+        class_accuracies = {}
         for data in test_dataloader:
 
             b_input_ids = data[0].to(device)
@@ -926,16 +986,18 @@ def test(transformer, classifier):
             _, predicted = torch.max(outputs.data, 1)
             total += b_labels.size(0)
             correct += (predicted == b_labels).sum().item()
+            per_label_accuracy(b_labels, predicted, class_accuracies)
 
     accuracy = (correct / total) * 100
     print(f"Test Accuracy : {accuracy}")
 
     print_test_accuracy(accuracy)
+    print_validation_per_class_accuracy_test(class_accuracies)
     # print("test : {} / {} * 100 = {} ".format(correct, total, accuracy))
     return accuracy
 
 
-def print_results(train_acc, validation_acc, test_acc):
+def print_results(train_acc, validation_acc, test_acc, train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
     train_acc.insert(0, "train")
     validation_acc.insert(0, "validation")
     test_acc.insert(0, "test")
@@ -946,6 +1008,85 @@ def print_results(train_acc, validation_acc, test_acc):
             data=[train_acc, validation_acc, test_acc], columns=titles)
         df.to_excel(execl_path, index=False)
         # print(df)
+
+
+def change_format(lst):
+    rep = {}
+    for i, x in enumerate(lst):
+        for item in x.keys():
+            if item in rep.keys():
+                predict = x[item]["true"]
+                total = x[item]["total"]
+                acc = (predict/total)*100
+                rep[item].append([predict, total, acc])
+            else:
+                predict = x[item]["true"]
+                total = x[item]["total"]
+                acc = (predict/total)*100
+                rep[item] = [[predict, total, acc]]
+    return rep
+
+def add_chart(workbook,worksheet,s_row,s_col,e_row,e_col):
+    chart1 = workbook.add_chart({'type': 'line'})
+    chart1.add_series({
+        'name' : ['sheet1',s_row,s_col-1],
+        'values':     ['sheet1',s_row,s_col,e_row,e_col],
+    })
+    worksheet.insert_chart('D2', chart1, {'x_offset': 25, 'y_offset': 10})
+
+def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
+    reformat_epla = change_format(train_per_lbl_acc)
+    reformat_vpla = change_format(validation_per_lbl_acc)
+    reformat_tpla = change_format(test_per_lbl_acc)
+    execl_path = default_path_str + dir_name + f"/{dir_name}_per_label.xlsx"
+    workbook = xlsxwriter.Workbook(execl_path)
+    worksheet = workbook.add_worksheet()
+
+    row = 1
+    for i, x in enumerate(reformat_epla):
+        col = 1
+        add_chart(workbook,worksheet,row+2,col+1,row+2,col+1+(len(reformat_epla)))
+        for i, x in enumerate(reformat_epla[x]):
+            worksheet.write(0, col+1, i+1)
+            predict = x[0]
+            total = x[1]
+            acc = x[2]
+            worksheet.write(row, col + 1, predict)
+            worksheet.write(row + 1, col + 1, total)
+            worksheet.write(row + 2, col + 1, acc)
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
+            col += 1
+        row += 3
+    row = row+1
+    for i, x in enumerate(reformat_vpla):
+        col = 1
+        add_chart(workbook,worksheet,row+2,col+1,row+2,col+1+(len(reformat_vpla)))
+        for i, x in enumerate(reformat_epla[x]):
+            worksheet.write(0, col+1, i+1)
+            predict = x[0]
+            total = x[1]
+            acc = x[2]
+            worksheet.write(row, col + 1, predict)
+            worksheet.write(row + 1, col + 1, total)
+            worksheet.write(row + 2, col + 1, acc)
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
+            col += 1
+        row += 3
+    row = row+1
+    for i, x in enumerate(reformat_tpla):
+        col = 1
+        for i, x in enumerate(reformat_epla[x]):
+            worksheet.write(0, col+1, i+1)
+            predict = x[0]
+            total = x[1]
+            acc = x[2]
+            worksheet.write(row, col + 1, predict)
+            worksheet.write(row + 1, col + 1, total)
+            worksheet.write(row + 2, col + 1, acc)
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
+            col += 1
+        row += 3
+    workbook.close()
 
 
 train(train_dataloader)
@@ -959,4 +1100,5 @@ if transformer == False:
     exit()
 test(transformer, classifier)
 
-print_results(total_acc_evaluation, total_acc_validation, total_acc_test)
+print_results(total_acc_evaluation, total_acc_validation, total_acc_test, total_label_base_accuracy_evaluation,
+              total_label_base_accuracy_validation, total_label_base_accuracy_test)
