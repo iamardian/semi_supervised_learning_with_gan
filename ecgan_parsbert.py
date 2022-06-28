@@ -957,6 +957,7 @@ def evaluation(epoch):
     accuracy = (correct / total) * 100
     print(f"evaluation Accuracy : {accuracy}")
 
+    print("class_accuracies : ",class_accuracies)
     print_evaluation_accuracy(epoch+1, accuracy)
     print_validation_per_class_accuracy_evaluation(class_accuracies)
     # print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
