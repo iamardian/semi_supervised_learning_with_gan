@@ -957,7 +957,7 @@ def evaluation(epoch):
     accuracy = (correct / total) * 100
     print(f"evaluation Accuracy : {accuracy}")
 
-    print("class_accuracies : ",class_accuracies)
+    print("class_accuracies : ", class_accuracies)
     print_evaluation_accuracy(epoch+1, accuracy)
     print_validation_per_class_accuracy_evaluation(class_accuracies)
     # print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
@@ -998,7 +998,7 @@ def test(transformer, classifier):
     return accuracy
 
 
-def print_results(train_acc, validation_acc, test_acc, train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
+def print_results(train_acc, validation_acc, test_acc):
     train_acc.insert(0, "train")
     validation_acc.insert(0, "validation")
     test_acc.insert(0, "test")
@@ -1027,13 +1027,15 @@ def change_format(lst):
                 rep[item] = [[predict, total, acc]]
     return rep
 
-def add_chart(workbook,worksheet,s_row,s_col,e_row,e_col):
+
+def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col):
     chart1 = workbook.add_chart({'type': 'line'})
     chart1.add_series({
-        'name' : ['sheet1',s_row,s_col-1],
-        'values':     ['sheet1',s_row,s_col,e_row,e_col],
+        'name': ['sheet1', s_row, s_col-1],
+        'values':     ['sheet1', s_row, s_col, e_row, e_col],
     })
     worksheet.insert_chart('D2', chart1, {'x_offset': 25, 'y_offset': 10})
+
 
 def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
     reformat_epla = change_format(train_per_lbl_acc)
@@ -1046,7 +1048,8 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     row = 1
     for i, x in enumerate(reformat_epla):
         col = 1
-        add_chart(workbook,worksheet,row+2,col+1,row+2,col+1+(len(reformat_epla)))
+        add_chart(workbook, worksheet, row+2, col+1,
+                  row+2, col+1+(len(reformat_epla)))
         for i, x in enumerate(reformat_epla[x]):
             worksheet.write(0, col+1, i+1)
             predict = x[0]
@@ -1061,7 +1064,8 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     row = row+1
     for i, x in enumerate(reformat_vpla):
         col = 1
-        add_chart(workbook,worksheet,row+2,col+1,row+2,col+1+(len(reformat_vpla)))
+        add_chart(workbook, worksheet, row+2, col+1,
+                  row+2, col+1+(len(reformat_vpla)))
         for i, x in enumerate(reformat_epla[x]):
             worksheet.write(0, col+1, i+1)
             predict = x[0]
@@ -1101,5 +1105,6 @@ if transformer == False:
     exit()
 test(transformer, classifier)
 
-print_results(total_acc_evaluation, total_acc_validation, total_acc_test, total_label_base_accuracy_evaluation,
-              total_label_base_accuracy_validation, total_label_base_accuracy_test)
+print_results(total_acc_evaluation, total_acc_validation, total_acc_test)
+print_per_class(total_label_base_accuracy_evaluation,
+                total_label_base_accuracy_validation, total_label_base_accuracy_test)
