@@ -463,14 +463,14 @@ def bert_params_for_tune(model, mode):
 
 # models parameters
 # transformer_params = [x for x in transformer.parameters()]
-print("========================== BEFORE ==========================")
-print_model_params(transformer)
+# print("========================== BEFORE ==========================")
+# print_model_params(transformer)
 
 transformer_vars = bert_params_for_tune(transformer, train_BERT_mode)
 
-print("========================== AFTER ==========================")
+# print("========================== AFTER ==========================")
 print_model_params(transformer)
-print("========================== END ==========================")
+# print("========================== END ==========================")
 
 
 d_vars = [v for v in discriminator.parameters()]
