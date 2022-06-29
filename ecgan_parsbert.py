@@ -1032,9 +1032,9 @@ def change_format(lst):
     return rep
 
 
-def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col,name,lbl,x,y):
-    width = 400
-    height = 300
+def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col,name,lbl,x,y,row,col):
+    width = 640
+    height = 360
     chart = workbook.add_chart({'type': 'line'})
     chart.add_series({
         'name': ['sheet1', s_row-2, s_col-1],
@@ -1044,7 +1044,7 @@ def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col,name,lbl,x,y):
         'name': f"{name}_{lbl}",
     })
     chart.set_size({'width': width, 'height': height})
-    worksheet.insert_chart(e_row+1,e_col+1, chart, {'x_offset': x*(width), 'y_offset': y*(height)})
+    worksheet.insert_chart(row,col, chart, {'x_offset': x*(width), 'y_offset': y*(height)})
 
 
 def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
@@ -1056,11 +1056,13 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     workbook = xlsxwriter.Workbook(execl_path)
     worksheet = workbook.add_worksheet()
 
+    x_row = 1
+    y_col = len(reformat_epla[list(reformat_epla.keys())[0]])
     row = 1
     for i, x in enumerate(reformat_epla):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
-                  row+2, col+1+(len(reformat_epla)),"Train",x,1,col)
+                  row+2, col+1+(len(reformat_epla)),"Train",x,1,i,x_row,y_col)
         for i, y in enumerate(reformat_epla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
@@ -1076,7 +1078,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     for i, x in enumerate(reformat_vpla):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
-                  row+2, col+1+(len(reformat_vpla)),"validation",x,2,col)
+                  row+2, col+1+(len(reformat_vpla)),"validation",x,2,i,x_row,y_col)
         for i, y in enumerate(reformat_vpla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
