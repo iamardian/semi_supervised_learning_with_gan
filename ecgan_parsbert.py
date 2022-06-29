@@ -850,6 +850,8 @@ def train(datasetloader):
 
 
 def per_label_accuracy(b_labels, predicted, class_accuracies):
+    predicted = predicted.numpy()
+    labels = labels.numpy()
     labels = torch.unique(b_labels)
     for label in labels:
         label_indexes = torch.where((b_labels == label))[0]
