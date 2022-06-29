@@ -1062,7 +1062,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     row = 1
     for i, x in enumerate(reformat_epla):
         col = 1
-        add_chart(workbook, worksheet, row+2, col+1,
+        add_chart(workbook, worksheet, row+2, col+2,
                   row+2, col+1+(len(reformat_epla)))
         for i, y in enumerate(reformat_epla[x]):
             worksheet.write(0, col+1, i+1)
@@ -1072,13 +1072,13 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
             worksheet.write(row, col + 1, predict)
             worksheet.write(row + 1, col + 1, total)
             worksheet.write(row + 2, col + 1, acc)
-            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{y}")
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
             col += 1
         row += 3
     row = row+1
     for i, x in enumerate(reformat_vpla):
         col = 1
-        add_chart(workbook, worksheet, row+2, col+1,
+        add_chart(workbook, worksheet, row+2, col+2,
                   row+2, col+1+(len(reformat_vpla)))
         for i, y in enumerate(reformat_vpla[x]):
             worksheet.write(0, col+1, i+1)
@@ -1088,7 +1088,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
             worksheet.write(row, col + 1, predict)
             worksheet.write(row + 1, col + 1, total)
             worksheet.write(row + 2, col + 1, acc)
-            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{y}")
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
             col += 1
         row += 3
     row = row+1
@@ -1102,7 +1102,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
             worksheet.write(row, col + 1, predict)
             worksheet.write(row + 1, col + 1, total)
             worksheet.write(row + 2, col + 1, acc)
-            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{y}")
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
             col += 1
         row += 3
     workbook.close()
