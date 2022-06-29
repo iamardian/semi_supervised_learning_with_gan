@@ -1062,6 +1062,7 @@ def print_results(train_acc, validation_acc, test_acc):
         height = 360
         for i in range(len(df)):
             for j in range(len(df.iloc[i])):
+                print(f"{i},{j}")
                 worksheet.write(i, j, df.iloc[i,j])
             chart = workbook.add_chart({'type': 'line'})
             chart.add_series({
