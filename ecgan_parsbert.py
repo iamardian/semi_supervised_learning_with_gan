@@ -1044,6 +1044,16 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     reformat_epla = change_format(train_per_lbl_acc)
     reformat_vpla = change_format(validation_per_lbl_acc)
     reformat_tpla = change_format(test_per_lbl_acc)
+    
+    print(f"train_per_lbl_acc : {train_per_lbl_acc}")
+    print(f"reformat_epla : {reformat_epla}")
+    
+    print(f"validation_per_lbl_acc : {validation_per_lbl_acc}")
+    print(f"reformat_vpla : {reformat_vpla}")
+    
+    print(f"test_per_lbl_acc : {test_per_lbl_acc}")
+    print(f"reformat_tpla : {reformat_tpla}")
+    
     execl_path = default_path_str + dir_name + f"/{dir_name}_per_label.xlsx"
     workbook = xlsxwriter.Workbook(execl_path)
     worksheet = workbook.add_worksheet()
