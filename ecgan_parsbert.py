@@ -961,7 +961,7 @@ def evaluation(epoch):
     accuracy = (correct / total) * 100
     print(f"evaluation Accuracy : {accuracy}")
 
-    print("class_accuracies : ", class_accuracies)
+    # print("class_accuracies : ", class_accuracies)
     print_evaluation_accuracy(epoch+1, accuracy)
     print_validation_per_class_accuracy_evaluation(class_accuracies)
     # print("evaluation : {} / {} * 100 = {} ".format(correct, total, accuracy))
@@ -1059,7 +1059,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     x_row = 1
     y_col = len(reformat_epla[list(reformat_epla.keys())[0]])
     row = 1
-    for i, x in enumerate(reformat_epla):
+    for i, x in enumerate(sorted(reformat_epla)):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
                   row+2, col+1+(len(reformat_epla)),"Train",x,1,i,x_row,y_col)
@@ -1075,7 +1075,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
             col += 1
         row += 3
     row = row+1
-    for i, x in enumerate(reformat_vpla):
+    for i, x in enumerate(sorted(reformat_vpla)):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
                   row+2, col+1+(len(reformat_vpla)),"validation",x,2,i,x_row,y_col)
@@ -1091,7 +1091,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
             col += 1
         row += 3
     row = row+1
-    for i, x in enumerate(reformat_tpla):
+    for i, x in enumerate(sorted(reformat_tpla)):
         col = 1
         for i, y in enumerate(reformat_tpla[x]):
             worksheet.write(0, col+1, i+1)
