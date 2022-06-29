@@ -875,8 +875,8 @@ def print_validation_per_class_accuracy_validation(class_accuracies):
     for x in class_accuracies:
         acc = (class_accuracies[x]["true_predict"] /
                class_accuracies[x]["total"])*100
-        print(
-            f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
+        # print(
+        #     f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
 
 
 def print_validation_per_class_accuracy_evaluation(class_accuracies):
@@ -884,8 +884,8 @@ def print_validation_per_class_accuracy_evaluation(class_accuracies):
     for x in class_accuracies:
         acc = (class_accuracies[x]["true_predict"] /
                class_accuracies[x]["total"])*100
-        print(
-            f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
+        # print(
+        #     f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
 
 
 def print_validation_per_class_accuracy_test(class_accuracies):
@@ -893,8 +893,8 @@ def print_validation_per_class_accuracy_test(class_accuracies):
     for x in class_accuracies:
         acc = (class_accuracies[x]["true_predict"] /
                class_accuracies[x]["total"])*100
-        print(
-            f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
+        # print(
+        #     f"{class_accuracies[x]['true_predict']} / {class_accuracies[x]['total']} >> accuracy class {x} : {acc}")
 
 
 def validate(epoch):
@@ -952,8 +952,8 @@ def evaluation(epoch):
 
             outputs = classifier(hidden_states)
             _, predicted = torch.max(outputs.data, 1)
-            print(f"predicted : {predicted}")
-            print(f"b_labels : {b_labels}")
+            # print(f"predicted : {predicted}")
+            # print(f"b_labels : {b_labels}")
             total += b_labels.size(0)
             correct += (predicted == b_labels).sum().item()
             per_label_accuracy(b_labels, predicted, class_accuracies)
@@ -1036,7 +1036,6 @@ def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col,name,lbl,x,y):
     width = 720
     height = 576
     chart = workbook.add_chart({'type': 'line'})
-    chart.add
     chart.add_series({
         'name': ['sheet1', s_row-2, s_col-1],
         'values':     ['sheet1', s_row, s_col, e_row, e_col],
