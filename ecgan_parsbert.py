@@ -1032,29 +1032,27 @@ def change_format(lst):
     return rep
 
 
-def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col):
-    chart1 = workbook.add_chart({'type': 'line'})
-    chart1.add_series({
+def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col,name,lbl,x,y):
+    width = 720
+    height = 576
+    chart = workbook.add_chart({'type': 'line'})
+    chart.add
+    chart.add_series({
         'name': ['sheet1', s_row-2, s_col-1],
         'values':     ['sheet1', s_row, s_col, e_row, e_col],
     })
-    worksheet.insert_chart('D2', chart1, {'x_offset': 25, 'y_offset': 10})
+    chart.set_title({
+        'name': f"{name}_{lbl}",
+    })
+    chart.set_size({'width': width, 'height': height})
+    worksheet.insert_chart(e_row+1,e_col+1, chart, {'x_offset': x*(width), 'y_offset': y*(height)})
 
 
 def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
     reformat_epla = change_format(train_per_lbl_acc)
     reformat_vpla = change_format(validation_per_lbl_acc)
     reformat_tpla = change_format(test_per_lbl_acc)
-    
-    # print(f"train_per_lbl_acc : {train_per_lbl_acc}")
-    # print(f"reformat_epla : {reformat_epla}")
-    
-    # print(f"validation_per_lbl_acc : {validation_per_lbl_acc}")
-    # print(f"reformat_vpla : {reformat_vpla}")
-    
-    # print(f"test_per_lbl_acc : {test_per_lbl_acc}")
-    # print(f"reformat_tpla : {reformat_tpla}")
-    
+        
     execl_path = default_path_str + dir_name + f"/{dir_name}_per_label.xlsx"
     workbook = xlsxwriter.Workbook(execl_path)
     worksheet = workbook.add_worksheet()
@@ -1062,8 +1060,8 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     row = 1
     for i, x in enumerate(reformat_epla):
         col = 1
-        add_chart(workbook, worksheet, row+2, col+2,
-                  row+2, col+1+(len(reformat_epla)))
+        add_chart(workbook, worksheet, row+2, col+1,
+                  row+2, col+1+(len(reformat_epla)),"Train",x,1,col)
         for i, y in enumerate(reformat_epla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
@@ -1078,8 +1076,8 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     row = row+1
     for i, x in enumerate(reformat_vpla):
         col = 1
-        add_chart(workbook, worksheet, row+2, col+2,
-                  row+2, col+1+(len(reformat_vpla)))
+        add_chart(workbook, worksheet, row+2, col+1,
+                  row+2, col+1+(len(reformat_vpla)),"validation",x,1,col*2)
         for i, y in enumerate(reformat_vpla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
