@@ -1019,12 +1019,12 @@ def change_format(lst):
     for i, x in enumerate(lst):
         for item in x.keys():
             if item in rep.keys():
-                predict = x[item]["true"]
+                predict = x[item]["true_predict"]
                 total = x[item]["total"]
                 acc = (predict/total)*100
                 rep[item].append([predict, total, acc])
             else:
-                predict = x[item]["true"]
+                predict = x[item]["true_predict"]
                 total = x[item]["total"]
                 acc = (predict/total)*100
                 rep[item] = [[predict, total, acc]]
