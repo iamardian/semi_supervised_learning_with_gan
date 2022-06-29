@@ -44,10 +44,12 @@ def datasets_summary(train, validation, test, dataset_name):
     print("===============================")
     print(train_info.to_string())
     print(f"Total : {train_len}")
+    print()
     print("Validation Dataset")
     print("===============================")
     print(validation_info.to_string())
     print(f"Total : {validation_len}")
+    print()
     print("Test Dataset")
     print("===============================")
     print(test_info.to_string())
@@ -547,9 +549,9 @@ params_obj = {
     "Model name": model_name,
     "train_BERT_mode": train_BERT_mode
 }
-print_params("===========================================")
+print("===========================================")
 print_params(params_obj)
-print_params("===========================================")
+print("===========================================")
 
 
 def load_best_model(load_path):
