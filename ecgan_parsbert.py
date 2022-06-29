@@ -1053,7 +1053,6 @@ def print_results(train_acc, validation_acc, test_acc):
     workbook = xlsxwriter.Workbook(execl_path)
     worksheet = workbook.add_worksheet()
 
-
     epochs = [x for x in range(len(train_acc))]
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         df = pd.DataFrame(
@@ -1063,7 +1062,8 @@ def print_results(train_acc, validation_acc, test_acc):
         for i in range(len(df)):
             for j in range(len(df.iloc[i])):
                 print(f"{i},{j}")
-                worksheet.write(i, j, df.iloc[i,j])
+                print(df.iloc[i, j])
+                worksheet.write(i, j, df.iloc[i, j])
             chart = workbook.add_chart({'type': 'line'})
             chart.add_series({
                 'name': ['sheet1', i, 0],
@@ -1073,11 +1073,13 @@ def print_results(train_acc, validation_acc, test_acc):
             #     'name': [i,0],
             # })
             chart.set_size({'width': width, 'height': height})
-            worksheet.insert_chart(3, 0, chart, {'x_offset': i*(width), 'y_offset': (height)})
+            worksheet.insert_chart(
+                3, 0, chart, {'x_offset': i*(width), 'y_offset': (height)})
         workbook.close()
 
         # df.to_excel(execl_path, index=False)
         # print(df)
+
 
 def change_format(lst):
     rep = {}
