@@ -1035,7 +1035,7 @@ def change_format(lst):
 def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col):
     chart1 = workbook.add_chart({'type': 'line'})
     chart1.add_series({
-        'name': ['sheet1', s_row, s_col-1],
+        'name': ['sheet1', s_row-2, s_col-1],
         'values':     ['sheet1', s_row, s_col, e_row, e_col],
     })
     worksheet.insert_chart('D2', chart1, {'x_offset': 25, 'y_offset': 10})
