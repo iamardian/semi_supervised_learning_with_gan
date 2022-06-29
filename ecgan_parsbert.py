@@ -24,10 +24,10 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 
 
 def datasets_summary(train, validation, test, dataset_name):
-    train_data = pd.read_csv(train, sep='\t')
-    validation_data = pd.read_csv(validation, sep='\t')
-    test_data = pd.read_csv(test, sep='\t')
-
+    train_data = pd.DataFrame(train,columns=["data","label_id"])
+    validation_data = pd.DataFrame(validation,columns=["data","label_id"])
+    test_data = pd.DataFrame(test,columns=["data","label_id"])
+    
     train_info = train_data.groupby(["label_id"]).size()
     train_len = len(train_data)
 
@@ -36,7 +36,9 @@ def datasets_summary(train, validation, test, dataset_name):
 
     test_info = test_data.groupby(["label_id"]).size()
     test_len = len(test_data)
+    print()
     print(f"Dataset : {dataset_name}")
+    print()
     print("Train Dataset")
     print("===============================")
     print(train_info.to_string())
@@ -216,13 +218,17 @@ def get_balance_labeled_example(file_path, size_of_data):
     return list(zip(X_train, y_train))
 
 
-def get_qc_examples(input_file):
+def get_qc_examples(input_file,dataSizeConstant,title):
     """Creates examples for the training and dev sets."""
 
     df = pd.read_csv(input_file, sep='\t')
     lst_cnt = df.content.to_list()
     lst_id = df.label_id.to_list()
     examples = list(zip(lst_cnt, lst_id))
+    if dataSizeConstant > 0:
+        subset = np.random.permutation([i for i in range(len(examples))])
+        number_of_sample = subset[:int(len(examples) * (dataSizeConstant))]
+        examples = [examples[i] for i in number_of_sample]
     return examples
 
 
@@ -231,15 +237,16 @@ if balance_label:
     labeled_examples = get_balance_labeled_example(
         labeled_file, dataSizeConstant)
 else:
-    labeled_examples = get_qc_examples(labeled_file)
-    subset = np.random.permutation([i for i in range(len(labeled_examples))])
-    number_of_sample = subset[:int(len(labeled_examples) * (dataSizeConstant))]
-    labeled_examples = [labeled_examples[i] for i in number_of_sample]
+    labeled_examples = get_qc_examples(labeled_file,dataSizeConstant,"Train Dataset")
+    # subset = np.random.permutation([i for i in range(len(labeled_examples))])
+    # number_of_sample = subset[:int(len(labeled_examples) * (dataSizeConstant))]
+    # labeled_examples = [labeled_examples[i] for i in number_of_sample]
 
 
-validation_examples = get_qc_examples(validation_file)
-test_examples = get_qc_examples(test_filename)
+validation_examples = get_qc_examples(validation_file,-1,"Validation Dataset")
+test_examples = get_qc_examples(test_filename,-1,"Test Dataset")
 
+datasets_summary(labeled_examples,validation_examples,test_examples,dataset_name)
 
 """Functions required to convert examples into Dataloader"""
 
@@ -479,7 +486,6 @@ def bert_params_for_tune(model, mode):
         param.requires_grad = False
 
     layers = model.encoder.layer
-    print(len(layers))
     for i, layer in enumerate(layers):
         if i < len(layers) - mode:
             params = layer.parameters()
@@ -543,7 +549,9 @@ params_obj = {
     "Model name": model_name,
     "train_BERT_mode": train_BERT_mode
 }
+print_params("===========================================")
 print_params(params_obj)
+print_params("===========================================")
 
 
 def load_best_model(load_path):
