@@ -1033,8 +1033,8 @@ def change_format(lst):
 
 
 def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col,name,lbl,x,y):
-    width = 720
-    height = 576
+    width = 400
+    height = 300
     chart = workbook.add_chart({'type': 'line'})
     chart.add_series({
         'name': ['sheet1', s_row-2, s_col-1],
@@ -1076,7 +1076,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     for i, x in enumerate(reformat_vpla):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
-                  row+2, col+1+(len(reformat_vpla)),"validation",x,1,col*2)
+                  row+2, col+1+(len(reformat_vpla)),"validation",x,2,col)
         for i, y in enumerate(reformat_vpla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
