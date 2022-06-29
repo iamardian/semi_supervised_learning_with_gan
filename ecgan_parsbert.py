@@ -23,6 +23,34 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 #!pip install sentencepiece
 
 
+def datasets_summary(train, validation, test, dataset_name):
+    train_data = pd.read_csv(train, sep='\t')
+    validation_data = pd.read_csv(validation, sep='\t')
+    test_data = pd.read_csv(test, sep='\t')
+
+    train_info = train_data.groupby(["label_id"]).size()
+    train_len = len(train_data)
+
+    validation_info = validation_data.groupby(["label_id"]).size()
+    validation_len = len(validation_data)
+
+    test_info = test_data.groupby(["label_id"]).size()
+    test_len = len(test_data)
+    print(f"Dataset : {dataset_name}")
+    print("Train Dataset")
+    print("===============================")
+    print(train_info.to_string())
+    print(f"Total : {train_len}")
+    print("Validation Dataset")
+    print("===============================")
+    print(validation_info.to_string())
+    print(f"Total : {validation_len}")
+    print("Test Dataset")
+    print("===============================")
+    print(test_info.to_string())
+    print(f"Total : {test_len}")
+
+
 def print_params(params):
     param_list = []
     cols = ["param", "value"]
@@ -159,6 +187,9 @@ labeled_file = "./{}/train.csv".format(dataset)
 validation_file = "./{}/dev.csv".format(dataset)
 test_filename = "./{}/test.csv".format(dataset)
 
+datasets_summary(labeled_file, validation_file, test_filename, dataset_name)
+
+
 # print(labeled_file)
 # print(validation_file)
 # print(test_filename)
@@ -195,8 +226,6 @@ def get_qc_examples(input_file):
     return examples
 
 
-"""Load the PersianNews and Digimag Datasets then separate labeled and unlabeled data."""
-
 # Load the examples
 if balance_label:
     labeled_examples = get_balance_labeled_example(
@@ -210,6 +239,7 @@ else:
 
 validation_examples = get_qc_examples(validation_file)
 test_examples = get_qc_examples(test_filename)
+
 
 """Functions required to convert examples into Dataloader"""
 
@@ -855,7 +885,8 @@ def per_label_accuracy(b_labels, predicted, class_accuracies):
         label_indexes = torch.where((b_labels == label))[0]
         number_of_label = len(label_indexes)
         predicts = [predicted[i].item() for i in label_indexes]
-        true_predicts = torch.sum((torch.tensor(predicts).to(device) == label)).item()
+        true_predicts = torch.sum(
+            (torch.tensor(predicts).to(device) == label)).item()
         # print(f"predicts : {predicts}")
         # print(f"label : {label}")
         # print(f"true_predicts : {true_predicts}")
@@ -1032,7 +1063,7 @@ def change_format(lst):
     return rep
 
 
-def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col,name,lbl,x,y,row,col):
+def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col, name, lbl, x, y, row, col):
     width = 640
     height = 360
     chart = workbook.add_chart({'type': 'line'})
@@ -1044,14 +1075,15 @@ def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col,name,lbl,x,y,row,c
         'name': f"{name}_{lbl}",
     })
     chart.set_size({'width': width, 'height': height})
-    worksheet.insert_chart(row,col, chart, {'x_offset': x*(width), 'y_offset': y*(height)})
+    worksheet.insert_chart(
+        row, col, chart, {'x_offset': x*(width), 'y_offset': y*(height)})
 
 
 def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
     reformat_epla = change_format(train_per_lbl_acc)
     reformat_vpla = change_format(validation_per_lbl_acc)
     reformat_tpla = change_format(test_per_lbl_acc)
-        
+
     execl_path = default_path_str + dir_name + f"/{dir_name}_per_label.xlsx"
     workbook = xlsxwriter.Workbook(execl_path)
     worksheet = workbook.add_worksheet()
@@ -1062,7 +1094,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     for i, x in enumerate(sorted(reformat_epla)):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
-                  row+2, col+1+(len(reformat_epla)),"Train",x,1,i,x_row,y_col)
+                  row+2, col+1+(len(reformat_epla)), "Train", x, 1, i, x_row, y_col)
         for i, y in enumerate(reformat_epla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
@@ -1078,7 +1110,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     for i, x in enumerate(sorted(reformat_vpla)):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
-                  row+2, col+1+(len(reformat_vpla)),"validation",x,2,i,x_row,y_col)
+                  row+2, col+1+(len(reformat_vpla)), "validation", x, 2, i, x_row, y_col)
         for i, y in enumerate(reformat_vpla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
