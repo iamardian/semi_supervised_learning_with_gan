@@ -1060,13 +1060,13 @@ def print_results(train_acc, validation_acc, test_acc):
             data=[train_acc, validation_acc, test_acc], columns=epochs)
         width = 640
         height = 360
-        for i, x in enumerate(df):
-            for j in range(len(x)):
-                worksheet.write(i, j, x[j])
+        for i in range(len(df)):
+            for j in range(len(df.iloc[i])):
+                worksheet.write(i, j, df.iloc[i,j])
             chart = workbook.add_chart({'type': 'line'})
             chart.add_series({
                 'name': ['sheet1', i, 0],
-                'values':     ['sheet1', i, 1, i, len(x)-1],
+                'values':     ['sheet1', i, 1, i, len(df.iloc[i])-1],
             })
             chart.set_title({
                 'name': [i,0],
