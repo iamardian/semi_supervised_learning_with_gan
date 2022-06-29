@@ -36,6 +36,7 @@ def datasets_summary(train, validation, test, dataset_name):
 
     test_info = test_data.groupby(["label_id"]).size()
     test_len = len(test_data)
+    
     print()
     print(f"Dataset : {dataset_name}")
     print()
@@ -188,9 +189,6 @@ os.system(cmd_str)
 labeled_file = "./{}/train.csv".format(dataset)
 validation_file = "./{}/dev.csv".format(dataset)
 test_filename = "./{}/test.csv".format(dataset)
-
-datasets_summary(labeled_file, validation_file, test_filename, dataset_name)
-
 
 # print(labeled_file)
 # print(validation_file)
