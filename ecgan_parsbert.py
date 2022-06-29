@@ -859,13 +859,14 @@ def per_label_accuracy(b_labels, predicted, class_accuracies):
         # print(f"predicts : {predicts}")
         # print(f"label : {label}")
         # print(f"true_predicts : {true_predicts}")
-        if label in class_accuracies.keys():
-            class_accuracies[label]["true_predict"] = true_predicts + \
-                class_accuracies[label]["true_predict"]
-            class_accuracies[label]["total"] = number_of_label + \
-                class_accuracies[label]["total"]
+        lb = label.item()
+        if lb in class_accuracies.keys():
+            class_accuracies[lb]["true_predict"] = true_predicts + \
+                class_accuracies[lb]["true_predict"]
+            class_accuracies[lb]["total"] = number_of_label + \
+                class_accuracies[lb]["total"]
         else:
-            class_accuracies[label] = {
+            class_accuracies[lb] = {
                 "true_predict": true_predicts, "total": number_of_label}
 
 
