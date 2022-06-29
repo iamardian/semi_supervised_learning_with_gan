@@ -1068,9 +1068,9 @@ def print_results(train_acc, validation_acc, test_acc):
                 'name': ['sheet1', i, 0],
                 'values':     ['sheet1', i, 1, i, len(df.iloc[i])-1],
             })
-            chart.set_title({
-                'name': [i,0],
-            })
+            # chart.set_title({
+            #     'name': [i,0],
+            # })
             chart.set_size({'width': width, 'height': height})
             worksheet.insert_chart(3, 0, chart, {'x_offset': i*(width), 'y_offset': (height)})
         workbook.close()
