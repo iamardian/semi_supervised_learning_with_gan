@@ -1046,14 +1046,14 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     reformat_vpla = change_format(validation_per_lbl_acc)
     reformat_tpla = change_format(test_per_lbl_acc)
     
-    print(f"train_per_lbl_acc : {train_per_lbl_acc}")
-    print(f"reformat_epla : {reformat_epla}")
+    # print(f"train_per_lbl_acc : {train_per_lbl_acc}")
+    # print(f"reformat_epla : {reformat_epla}")
     
-    print(f"validation_per_lbl_acc : {validation_per_lbl_acc}")
-    print(f"reformat_vpla : {reformat_vpla}")
+    # print(f"validation_per_lbl_acc : {validation_per_lbl_acc}")
+    # print(f"reformat_vpla : {reformat_vpla}")
     
-    print(f"test_per_lbl_acc : {test_per_lbl_acc}")
-    print(f"reformat_tpla : {reformat_tpla}")
+    # print(f"test_per_lbl_acc : {test_per_lbl_acc}")
+    # print(f"reformat_tpla : {reformat_tpla}")
     
     execl_path = default_path_str + dir_name + f"/{dir_name}_per_label.xlsx"
     workbook = xlsxwriter.Workbook(execl_path)
@@ -1064,15 +1064,15 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
                   row+2, col+1+(len(reformat_epla)))
-        for i, x in enumerate(reformat_epla[x]):
+        for i, y in enumerate(reformat_epla[x]):
             worksheet.write(0, col+1, i+1)
-            predict = x[0]
-            total = x[1]
-            acc = x[2]
+            predict = y[0]
+            total = y[1]
+            acc = y[2]
             worksheet.write(row, col + 1, predict)
             worksheet.write(row + 1, col + 1, total)
             worksheet.write(row + 2, col + 1, acc)
-            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{y}")
             col += 1
         row += 3
     row = row+1
@@ -1080,29 +1080,29 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
                   row+2, col+1+(len(reformat_vpla)))
-        for i, x in enumerate(reformat_epla[x]):
+        for i, y in enumerate(reformat_vpla[x]):
             worksheet.write(0, col+1, i+1)
-            predict = x[0]
-            total = x[1]
-            acc = x[2]
+            predict = y[0]
+            total = y[1]
+            acc = y[2]
             worksheet.write(row, col + 1, predict)
             worksheet.write(row + 1, col + 1, total)
             worksheet.write(row + 2, col + 1, acc)
-            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{y}")
             col += 1
         row += 3
     row = row+1
     for i, x in enumerate(reformat_tpla):
         col = 1
-        for i, x in enumerate(reformat_epla[x]):
+        for i, y in enumerate(reformat_tpla[x]):
             worksheet.write(0, col+1, i+1)
-            predict = x[0]
-            total = x[1]
-            acc = x[2]
+            predict = y[0]
+            total = y[1]
+            acc = y[2]
             worksheet.write(row, col + 1, predict)
             worksheet.write(row + 1, col + 1, total)
             worksheet.write(row + 2, col + 1, acc)
-            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{x}")
+            worksheet.merge_range(f"B{row+1}:B{row+3}", f"{y}")
             col += 1
         row += 3
     workbook.close()
