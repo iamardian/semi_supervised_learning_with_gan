@@ -24,10 +24,10 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 
 
 def datasets_summary(train, validation, test, dataset_name):
-    train_data = pd.DataFrame(train,columns=["data","label_id"])
-    validation_data = pd.DataFrame(validation,columns=["data","label_id"])
-    test_data = pd.DataFrame(test,columns=["data","label_id"])
-    
+    train_data = pd.DataFrame(train, columns=["data", "label_id"])
+    validation_data = pd.DataFrame(validation, columns=["data", "label_id"])
+    test_data = pd.DataFrame(test, columns=["data", "label_id"])
+
     train_info = train_data.groupby(["label_id"]).size()
     train_len = len(train_data)
 
@@ -36,7 +36,7 @@ def datasets_summary(train, validation, test, dataset_name):
 
     test_info = test_data.groupby(["label_id"]).size()
     test_len = len(test_data)
-    
+
     print()
     print(f"Dataset : {dataset_name}")
     print()
@@ -218,7 +218,7 @@ def get_balance_labeled_example(file_path, size_of_data):
     return list(zip(X_train, y_train))
 
 
-def get_qc_examples(input_file,dataSizeConstant,title):
+def get_qc_examples(input_file, dataSizeConstant, title):
     """Creates examples for the training and dev sets."""
 
     df = pd.read_csv(input_file, sep='\t')
@@ -237,16 +237,19 @@ if balance_label:
     labeled_examples = get_balance_labeled_example(
         labeled_file, dataSizeConstant)
 else:
-    labeled_examples = get_qc_examples(labeled_file,dataSizeConstant,"Train Dataset")
+    labeled_examples = get_qc_examples(
+        labeled_file, dataSizeConstant, "Train Dataset")
     # subset = np.random.permutation([i for i in range(len(labeled_examples))])
     # number_of_sample = subset[:int(len(labeled_examples) * (dataSizeConstant))]
     # labeled_examples = [labeled_examples[i] for i in number_of_sample]
 
 
-validation_examples = get_qc_examples(validation_file,-1,"Validation Dataset")
-test_examples = get_qc_examples(test_filename,-1,"Test Dataset")
+validation_examples = get_qc_examples(
+    validation_file, -1, "Validation Dataset")
+test_examples = get_qc_examples(test_filename, -1, "Test Dataset")
 
-datasets_summary(labeled_examples,validation_examples,test_examples,dataset_name)
+datasets_summary(labeled_examples, validation_examples,
+                 test_examples, dataset_name)
 
 """Functions required to convert examples into Dataloader"""
 
@@ -1045,14 +1048,35 @@ def print_results(train_acc, validation_acc, test_acc):
     train_acc.insert(0, "train")
     validation_acc.insert(0, "validation")
     test_acc.insert(0, "test")
-    titles = [x for x in range(len(train_acc))]
+
     execl_path = default_path_str + dir_name + f"/{dir_name}.xlsx"
+    workbook = xlsxwriter.Workbook(execl_path)
+    worksheet = workbook.add_worksheet()
+
+
+    epochs = [x for x in range(len(train_acc))]
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         df = pd.DataFrame(
-            data=[train_acc, validation_acc, test_acc], columns=titles)
-        df.to_excel(execl_path, index=False)
-        # print(df)
+            data=[train_acc, validation_acc, test_acc], columns=epochs)
+        width = 640
+        height = 360
+        for i, x in enumerate(df):
+            for j in range(len(x)):
+                worksheet.write(i, j, x[j])
+            chart = workbook.add_chart({'type': 'line'})
+            chart.add_series({
+                'name': ['sheet1', i, 0],
+                'values':     ['sheet1', i, 1, i, len(x)-1],
+            })
+            chart.set_title({
+                'name': [i,0],
+            })
+            chart.set_size({'width': width, 'height': height})
+            worksheet.insert_chart(3, 0, chart, {'x_offset': i*(width), 'y_offset': (height)})
+        workbook.close()
 
+        # df.to_excel(execl_path, index=False)
+        # print(df)
 
 def change_format(lst):
     rep = {}
