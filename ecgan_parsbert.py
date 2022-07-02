@@ -70,10 +70,10 @@ def print_params(params):
 ##########################
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:l:m:"
+options = "hd:p:w:t:e:l:m:o:c:g:r:"
 # Long options
 long_options = ["help", "dataset", "percentage",
-                "weight", "thresh", "epochs", "label_balance", "mode"]
+                "weight", "thresh", "epochs", "label_balance", "mode", "optimizer", "--classifier_rate", "--generator_rate", "--discriminator_rate"]
 
 dataset_name = "persiannews"
 percentage_labeled_data = 0.1
@@ -82,6 +82,10 @@ confidence_thresh = 0.2
 num_epochs = 10
 balance_label = False
 train_BERT_mode = 0  # 0 = freeze | -1 = full | positive number = n latest layer of BERT
+optimizer = "adamW"
+learning_rate_discriminator = 5e-5
+learning_rate_generator = 5e-5
+learning_rate_classifier = 5e-5
 try:
     # Parsing argument
     arguments, values = getopt.getopt(argumentList, options, long_options)
@@ -103,6 +107,14 @@ try:
             balance_label = bool(currentValue)
         elif currentArgument in ("-m", "--mode"):
             train_BERT_mode = int(currentValue)
+        elif currentArgument in ("-o", "--optimizer"):
+            optimizer = str(currentValue)
+        elif currentArgument in ("-c", "--classifier_rate"):
+            learning_rate_classifier = float(currentValue)
+        elif currentArgument in ("-g", "--generator_rate"):
+            learning_rate_generator = float(currentValue)
+        elif currentArgument in ("-r", "--discriminator_rate"):
+            learning_rate_discriminator = float(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -167,9 +179,7 @@ apply_balance = True
 # --------------------------------
 #  Optimization parameters
 # --------------------------------
-learning_rate_discriminator = 5e-5
-learning_rate_generator = 5e-5
-learning_rate_classifier = 5e-5
+
 epsilon = 1e-8
 
 num_train_epochs = num_epochs
@@ -517,10 +527,34 @@ c_vars = transformer_vars + [v for v in classifier.parameters()]
 # c_vars = [v for v in classifier.parameters()]
 g_vars = [v for v in generator.parameters()]
 
-# optimizer
-dis_optimizer = torch.optim.AdamW(d_vars, lr=learning_rate_discriminator)
-cfr_optimizer = torch.optim.AdamW(c_vars, lr=learning_rate_classifier)
-gen_optimizer = torch.optim.AdamW(g_vars, lr=learning_rate_generator)
+
+def optimizer_adam():
+    # optimizer
+    dis_optimizer = torch.optim.Adam(d_vars, lr=learning_rate_discriminator)
+    cfr_optimizer = torch.optim.Adam(c_vars, lr=learning_rate_classifier)
+    gen_optimizer = torch.optim.Adam(g_vars, lr=learning_rate_generator)
+    return dis_optimizer, cfr_optimizer, gen_optimizer
+
+
+def optimizer_adamW():
+    # optimizer
+    dis_optimizer = torch.optim.AdamW(d_vars, lr=learning_rate_discriminator)
+    cfr_optimizer = torch.optim.AdamW(c_vars, lr=learning_rate_classifier)
+    gen_optimizer = torch.optim.AdamW(g_vars, lr=learning_rate_generator)
+    return dis_optimizer, cfr_optimizer, gen_optimizer
+
+
+optimizations = {
+    "adam": optimizer_adam,
+    "adamW": optimizer_adamW
+}
+
+dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[optimizer]
+
+# # optimizer
+# dis_optimizer = torch.optim.AdamW(d_vars, lr=learning_rate_discriminator)
+# cfr_optimizer = torch.optim.AdamW(c_vars, lr=learning_rate_classifier)
+# gen_optimizer = torch.optim.AdamW(g_vars, lr=learning_rate_generator)
 
 advWeight = adversarial_weight  # adversarial weight
 offset = -1
@@ -538,7 +572,19 @@ total_label_base_accuracy_test = []
 
 best_model_accuracy = 0
 default_path_str = "/content/drive/MyDrive/NLP/save/"
-dir_name = f"ec_gan|{dataset_name}|{percentage_labeled_data}|{adversarial_weight}|{confidence_thresh}|{num_epochs}|{balance_label}|{train_BERT_mode}"
+dir_name = f"ec_gan|" +\
+    "{dataset_name}|" +\
+    "{percentage_labeled_data}|" +\
+    "{adversarial_weight}|" +\
+    "{confidence_thresh}|" +\
+    "{num_epochs}|" +\
+    "{balance_label}|" +\
+    "{train_BERT_mode}|" +\
+    "{optimizer}|" +\
+    "d_{learning_rate_discriminator}|" +\
+    "g_{learning_rate_generator}|" +\
+    "c_{learning_rate_classifier}"
+
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
 
