@@ -1061,9 +1061,6 @@ def print_results(train_acc, validation_acc, test_acc):
         height = 360
         for i in range(len(df)):
             for j in range(len(df.iloc[i])):
-                # print("len : ", len(df.iloc[i]))
-                # print(f"{i},{j}")
-                # print(df.iloc[i, j])
                 if not (pd.isnull(df.iloc[i, j])):
                     worksheet.write(i, j, df.iloc[i, j])
             chart = workbook.add_chart({'type': 'line'})
@@ -1117,6 +1114,7 @@ def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col, name, lbl, x, y, 
 
 
 def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
+    len_epoch = len(train_per_lbl_acc)
     reformat_epla = change_format(train_per_lbl_acc)
     reformat_vpla = change_format(validation_per_lbl_acc)
     reformat_tpla = change_format(test_per_lbl_acc)
@@ -1131,7 +1129,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     for i, x in enumerate(sorted(reformat_epla)):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
-                  row+2, col+1+(len(reformat_epla)), "Train", x, 1, i, x_row, y_col)
+                  row+2, col+1+(len_epoch), "Train", x, 1, i, x_row, y_col)
         for i, y in enumerate(reformat_epla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
@@ -1147,7 +1145,7 @@ def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc)
     for i, x in enumerate(sorted(reformat_vpla)):
         col = 1
         add_chart(workbook, worksheet, row+2, col+1,
-                  row+2, col+1+(len(reformat_vpla)), "validation", x, 2, i, x_row, y_col)
+                  row+2, col+1+(len_epoch), "validation", x, 2, i, x_row, y_col)
         for i, y in enumerate(reformat_vpla[x]):
             worksheet.write(0, col+1, i+1)
             predict = y[0]
