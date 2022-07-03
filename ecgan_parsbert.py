@@ -573,17 +573,17 @@ total_label_base_accuracy_test = []
 best_model_accuracy = 0
 default_path_str = "/content/drive/MyDrive/NLP/save/"
 dir_name = f"ec_gan|" +\
-    "{dataset_name}|" +\
-    "{percentage_labeled_data}|" +\
-    "{adversarial_weight}|" +\
-    "{confidence_thresh}|" +\
-    "{num_epochs}|" +\
-    "{balance_label}|" +\
-    "{train_BERT_mode}|" +\
-    "{optimizer}|" +\
-    "d_{learning_rate_discriminator}|" +\
-    "g_{learning_rate_generator}|" +\
-    "c_{learning_rate_classifier}"
+    f"{dataset_name}|" +\
+    f"{percentage_labeled_data}|" +\
+    f"{adversarial_weight}|" +\
+    f"{confidence_thresh}|" +\
+    f"{num_epochs}|" +\
+    f"{balance_label}|" +\
+    f"{train_BERT_mode}|" +\
+    f"{optimizer}|" +\
+    f"d_{learning_rate_discriminator}|" +\
+    f"g_{learning_rate_generator}|" +\
+    f"c_{learning_rate_classifier}"
 
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
