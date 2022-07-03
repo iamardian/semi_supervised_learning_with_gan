@@ -549,7 +549,7 @@ optimizations = {
     "adamW": optimizer_adamW
 }
 
-dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[optimizer]
+dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[optimizer]()
 
 # # optimizer
 # dis_optimizer = torch.optim.AdamW(d_vars, lr=learning_rate_discriminator)
