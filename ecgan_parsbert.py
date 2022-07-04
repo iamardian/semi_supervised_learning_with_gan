@@ -848,8 +848,9 @@ def save_params(epoch, save_path):
             'gen_scheduler': gen_scheduler,
         }, model_path_name)
         remove_previous_models(save_path, model_name_path)
-    except:
+    except Exception as e:
         log_print("save model failed ...")
+        log_print(f"error msg : {e}")
 
 
 def write_to_file(file_path):
