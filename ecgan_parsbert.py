@@ -154,9 +154,12 @@ create_path_if_not_exists(models_path)
 
 def log_print(*args):
     print()
+    source_file = open(models_path+"/log_file.txt", 'a')
     for a in args:
         print(a, end=' ')
-        print(a, file=open(models_path+"/log_file.txt", 'a'), end=' ')
+        print(a, file=source_file, end=' ')
+    print("\n", file=source_file)
+    source_file.close()
 
 
 # Set random values
