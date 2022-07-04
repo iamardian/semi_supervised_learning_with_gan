@@ -1,5 +1,6 @@
 
 # !pip install transformers==4.3.2
+from asyncio import constants
 import sys
 import getopt
 from genericpath import exists
@@ -37,32 +38,33 @@ def datasets_summary(train, validation, test, dataset_name):
     test_info = test_data.groupby(["label_id"]).size()
     test_len = len(test_data)
 
-    print()
-    print(f"Dataset : {dataset_name}")
-    print()
-    print("Train Dataset")
-    print("===============================")
-    print(train_info.to_string())
-    print(f"Total : {train_len}")
-    print()
-    print("Validation Dataset")
-    print("===============================")
-    print(validation_info.to_string())
-    print(f"Total : {validation_len}")
-    print()
-    print("Test Dataset")
-    print("===============================")
-    print(test_info.to_string())
-    print(f"Total : {test_len}")
+    log_print()
+    log_print(f"Dataset : {dataset_name}")
+    log_print()
+    log_print("Train Dataset")
+    log_print("===============================")
+    log_print(train_info.to_string())
+    log_print(f"Total : {train_len}")
+    log_print()
+    log_print("Validation Dataset")
+    log_print("===============================")
+    log_print(validation_info.to_string())
+    log_print(f"Total : {validation_len}")
+    log_print()
+    log_print("Test Dataset")
+    log_print("===============================")
+    log_print(test_info.to_string())
+    log_print(f"Total : {test_len}")
 
 
-def print_params(params):
+def print_params(params, file_path):
     param_list = []
     cols = ["param", "value"]
     for x in params:
         param_list.append([x, params[x]])
     df = pd.DataFrame(param_list, columns=cols)
-    print(df.to_string(index=False))
+    df.to_json(file_path + "params.json")
+    log_print(df.to_string(index=False))
 
 
 ##########################
@@ -121,6 +123,31 @@ except getopt.error as err:
 
 # print("Dataset : {} \nPercentage : {}".format(
 #     dataset_name, percentage_labeled_data))
+
+
+default_path_str = "/content/drive/MyDrive/NLP/save/"
+dir_name = f"ec_gan|" +\
+    f"{dataset_name}|" +\
+    f"{percentage_labeled_data}|" +\
+    f"{adversarial_weight}|" +\
+    f"{confidence_thresh}|" +\
+    f"{num_epochs}|" +\
+    f"{balance_label}|" +\
+    f"{train_BERT_mode}|" +\
+    f"{optimizer}|" +\
+    f"d_{learning_rate_discriminator}|" +\
+    f"g_{learning_rate_generator}|" +\
+    f"c_{learning_rate_classifier}"
+
+models_path = os.path.join(default_path_str, dir_name)
+best_model_name = "best_model"
+
+
+def log_print(*args):
+    for a in args:
+        print(a, end=' ')
+        print(a, file=open(models_path+"/log_file.txt", 'a'), end=' ')
+
 
 # Set random values
 seed_val = 42
@@ -488,7 +515,7 @@ classifierLosses = []
 
 def print_model_params(model):
     for item in model.parameters():
-        print(item.requires_grad)
+        log_print(item.requires_grad)
 
 
 def bert_params_for_tune(model, mode):
@@ -571,22 +598,7 @@ total_label_base_accuracy_evaluation = []
 total_label_base_accuracy_test = []
 
 best_model_accuracy = 0
-default_path_str = "/content/drive/MyDrive/NLP/save/"
-dir_name = f"ec_gan|" +\
-    f"{dataset_name}|" +\
-    f"{percentage_labeled_data}|" +\
-    f"{adversarial_weight}|" +\
-    f"{confidence_thresh}|" +\
-    f"{num_epochs}|" +\
-    f"{balance_label}|" +\
-    f"{train_BERT_mode}|" +\
-    f"{optimizer}|" +\
-    f"d_{learning_rate_discriminator}|" +\
-    f"g_{learning_rate_generator}|" +\
-    f"c_{learning_rate_classifier}"
 
-models_path = os.path.join(default_path_str, dir_name)
-best_model_name = "best_model"
 
 params_obj = {
     "Dataset": dataset_name,
@@ -596,11 +608,15 @@ params_obj = {
     "Balance label": balance_label,
     "Batch size": batch_size,
     "Model name": model_name,
-    "train_BERT_mode": train_BERT_mode
+    "train_BERT_mode": train_BERT_mode,
+    "optimizer": optimizer,
+    "learning_rate_discriminator": learning_rate_discriminator,
+    "learning_rate_generator": learning_rate_generator,
+    "learning_rate_classifier": learning_rate_classifier,
 }
-print("===========================================")
+log_print("===========================================")
 print_params(params_obj)
-print("===========================================")
+log_print("===========================================")
 
 
 def load_best_model(load_path):
@@ -632,10 +648,10 @@ def save_best_model(save_path, epoch, accuracy):
     create_path_if_not_exists(save_path)
     global best_model_accuracy
     if best_model_accuracy >= accuracy:
-        print(f"best_model_accuracy : {best_model_accuracy}")
+        log_print(f"best_model_accuracy : {best_model_accuracy}")
         return
     best_model_accuracy = accuracy
-    print(f"best_model_accuracy : {best_model_accuracy}")
+    log_print(f"best_model_accuracy : {best_model_accuracy}")
     best_model_path = os.path.join(save_path, f"{best_model_name}.pth")
     model_to_save = transformer.module if hasattr(
         transformer, 'module') else transformer
@@ -779,7 +795,7 @@ def save_params(epoch, save_path):
         }, model_path_name)
         remove_previous_models(save_path, model_name_path)
     except:
-        print("save model failed ...")
+        log_print("save model failed ...")
 
 
 def write_to_file(file_path):
@@ -803,7 +819,7 @@ def remove_previous_models(dir_path, current_model):
 
 
 def train(datasetloader):
-    print("Training Start : ")
+    log_print("Training Start : ")
     load_params(models_path, classifier, generator, discriminator,
                 transformer, cfr_optimizer, gen_optimizer, dis_optimizer)
     for epoch_i in range(offset+1, num_train_epochs):
@@ -814,10 +830,10 @@ def train(datasetloader):
         #               Training
         # ========================================
         # Perform one full pass over the training set.
-        print("")
-        print(
+        log_print("")
+        log_print(
             '======== Epoch {:} / {:} ========'.format(epoch_i + 1, num_train_epochs))
-        print('Training...')
+        log_print('Training...')
 
         # Measure how long the training epoch takes.
         t0 = time.time()
@@ -832,7 +848,7 @@ def train(datasetloader):
                 # Calculate elapsed time in minutes.
                 elapsed = format_time(time.time() - t0)
                 # Report progress.
-                print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(
+                log_print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(
                     i, len(datasetloader), elapsed))
 
             # Unpack this training batch from our dataloader.
@@ -928,8 +944,8 @@ def train(datasetloader):
             #   print("({}) train_accuracy : {}".format(i+1,train_accuracy))
             #   classifier.train()
 
-        print("Epoch " + str(epoch_i+1) + " Complete")
-        print("Epoch Time : ", time.time()-t0)
+        log_print("Epoch " + str(epoch_i+1) + " Complete")
+        log_print("Epoch Time : ", time.time()-t0)
         evaluation(epoch_i)
         validation_acc = validate(epoch_i)
         save_best_model(models_path, epoch_i, validation_acc)
@@ -1012,7 +1028,7 @@ def validate(epoch):
             per_label_accuracy(b_labels, predicted, class_accuracies)
 
     accuracy = (correct / total) * 100
-    print(f"validation Accuracy : {accuracy}")
+    log_print(f"validation Accuracy : {accuracy}")
     print_validation_per_class_accuracy_validation(class_accuracies)
     print_validation_accuracy(epoch+1, accuracy)
     # print("validate : {} / {} * 100 = {} ".format(correct, total, accuracy))
@@ -1047,7 +1063,7 @@ def evaluation(epoch):
             per_label_accuracy(b_labels, predicted, class_accuracies)
 
     accuracy = (correct / total) * 100
-    print(f"evaluation Accuracy : {accuracy}")
+    log_print(f"evaluation Accuracy : {accuracy}")
 
     # print("class_accuracies : ", class_accuracies)
     print_evaluation_accuracy(epoch+1, accuracy)
@@ -1058,8 +1074,8 @@ def evaluation(epoch):
 
 
 def test(transformer, classifier):
-    print()
-    print("Start Testing ...")
+    log_print()
+    log_print("Start Testing ...")
     classifier.eval()
 
     correct = 0
@@ -1082,7 +1098,7 @@ def test(transformer, classifier):
             per_label_accuracy(b_labels, predicted, class_accuracies)
 
     accuracy = (correct / total) * 100
-    print(f"Test Accuracy : {accuracy}")
+    log_print(f"Test Accuracy : {accuracy}")
 
     print_test_accuracy(accuracy)
     print_validation_per_class_accuracy_test(class_accuracies)
@@ -1227,7 +1243,7 @@ transformer, classifier = load_best_model(models_path)
 classifier.cuda()
 transformer.cuda()
 if transformer == False:
-    print("an error occurred : load best model failed")
+    log_print("an error occurred : load best model failed")
     exit()
 test(transformer, classifier)
 
