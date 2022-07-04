@@ -159,7 +159,6 @@ def log_print(*args):
         print(a, file=open(models_path+"/log_file.txt", 'a'), end=' ')
 
 
-
 # Set random values
 seed_val = 42
 random.seed(seed_val)
@@ -715,7 +714,7 @@ def find_latest_model_name(dir_path):
     model_name = ""
     if not os.path.exists(dir_path):
         return model_name
-    files = sorted(filter(os.path.isfile, glob.glob(dir_path + '/*')))
+    files = sorted(filter(os.path.isfile, glob.glob(dir_path + '/*.pth')))
     if len(files) == 0:
         return model_name
     for f in reversed(range(len(files))):
@@ -729,7 +728,7 @@ def find_latest_model_name(dir_path):
 
 def load_params(load_path, classifier, generator, discriminator, transformer, cfr_optimizer, gen_optimizer, dis_optimizer):
     # print("call load_params")
-    if not os.path.exists(load_path):
+    if not os.path.exists(load_path+"/best"):
         # print("not exists path : ", load_path)
         return
     model_path = find_latest_model_name(load_path)
