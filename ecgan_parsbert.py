@@ -79,10 +79,23 @@ def print_params(params):
 ##########################
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:l:m:o:c:g:r:"
+options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:"
 # Long options
-long_options = ["help", "dataset", "percentage",
-                "weight", "thresh", "epochs", "label_balance", "mode", "optimizer", "--classifier_rate", "--generator_rate", "--discriminator_rate"]
+long_options = ["help",
+                "dataset",
+                "percentage",
+                "weight",
+                "thresh",
+                "epochs",
+                "label_balance",
+                "mode",
+                "optimizer",
+                "classifier_rate",
+                "generator_rate",
+                "discriminator_rate",
+                "scheduler",
+                "warmup_proportion"
+                ]
 
 dataset_name = "persiannews"
 percentage_labeled_data = 0.1
@@ -95,6 +108,10 @@ optimizer = "adamW"
 learning_rate_discriminator = 5e-5
 learning_rate_generator = 5e-5
 learning_rate_classifier = 5e-5
+
+# Scheduler
+apply_scheduler = False
+warmup_proportion = 0.1
 try:
     # Parsing argument
     arguments, values = getopt.getopt(argumentList, options, long_options)
@@ -124,6 +141,10 @@ try:
             learning_rate_generator = float(currentValue)
         elif currentArgument in ("-r", "--discriminator_rate"):
             learning_rate_discriminator = float(currentValue)
+        elif currentArgument in ("-s", "--scheduler"):
+            apply_scheduler = bool(currentValue)
+        elif currentArgument in ("-u", "--warmup_propotion"):
+            warmup_proportion = float(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -134,17 +155,19 @@ except getopt.error as err:
 
 default_path_str = "/content/drive/MyDrive/NLP/save/"
 dir_name = f"ec_gan|" +\
-    f"{dataset_name}|" +\
-    f"{percentage_labeled_data}|" +\
-    f"{adversarial_weight}|" +\
-    f"{confidence_thresh}|" +\
-    f"{num_epochs}|" +\
-    f"{balance_label}|" +\
-    f"{train_BERT_mode}|" +\
-    f"{optimizer}|" +\
-    f"d_{learning_rate_discriminator}|" +\
-    f"g_{learning_rate_generator}|" +\
-    f"c_{learning_rate_classifier}"
+    f"data({dataset_name})|" +\
+    f"ration({percentage_labeled_data})|" +\
+    f"weight({adversarial_weight})|" +\
+    f"thresh({confidence_thresh})|" +\
+    f"epochs({num_epochs})|" +\
+    f"label_balance({balance_label})|" +\
+    f"layer({train_BERT_mode})|" +\
+    f"optimizer({optimizer})|" +\
+    f"d_lr({learning_rate_discriminator})|" +\
+    f"g_lr({learning_rate_generator})|" +\
+    f"c_lr({learning_rate_classifier})|" +\
+    f"sch({apply_scheduler})|" +\
+    f"warmup_proportion({warmup_proportion})"
 
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
@@ -225,9 +248,7 @@ epsilon = 1e-8
 num_train_epochs = num_epochs
 
 multi_gpu = False
-# Scheduler
-apply_scheduler = False
-warmup_proportion = 0.1
+
 # Print
 print_each_n_step = 10
 
@@ -589,12 +610,30 @@ optimizations = {
     "adamW": optimizer_adamW
 }
 
+
+def get_scheduler(optimizer):
+    if apply_scheduler:
+        num_train_examples = len(train_examples)
+        num_train_steps = int(num_train_examples /
+                              batch_size * num_train_epochs)
+        num_warmup_steps = int(num_train_steps * warmup_proportion)
+        return get_constant_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps)
+
+
 dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[optimizer]()
+dis_scheduler, cfr_scheduler, gen_scheduler = None
+if apply_scheduler:
+    dis_scheduler = get_scheduler(dis_optimizer)
+    cfr_scheduler = get_scheduler(cfr_optimizer)
+    gen_scheduler = get_scheduler(gen_optimizer)
+    pass
+
 
 # # optimizer
 # dis_optimizer = torch.optim.AdamW(d_vars, lr=learning_rate_discriminator)
 # cfr_optimizer = torch.optim.AdamW(c_vars, lr=learning_rate_classifier)
 # gen_optimizer = torch.optim.AdamW(g_vars, lr=learning_rate_generator)
+
 
 advWeight = adversarial_weight  # adversarial weight
 offset = -1
@@ -740,7 +779,11 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
         return
     # print(f"model_path : {model_path}")
     checkpoint = torch.load(model_path)
-    global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses, total_acc_validation, total_acc_evaluation, total_label_base_accuracy_validation, total_label_base_accuracy_evaluation, total_label_base_accuracy_test
+    global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses
+    global total_acc_validation, total_acc_evaluation
+    global total_label_base_accuracy_validation, total_label_base_accuracy_evaluation, total_label_base_accuracy_test
+    global dis_scheduler, cfr_scheduler, gen_scheduler
+
     offset = checkpoint['epoch']
     # print(f"offset : {offset}")
     best_model_accuracy = checkpoint['best_model_accuracy']
@@ -765,6 +808,10 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
     total_label_base_accuracy_validation = checkpoint['total_label_base_accuracy_validation']
     total_label_base_accuracy_evaluation = checkpoint['total_label_base_accuracy_evaluation']
     total_label_base_accuracy_test = checkpoint['total_label_base_accuracy_test']
+
+    dis_scheduler = checkpoint['dis_scheduler']
+    cfr_scheduler = checkpoint['cfr_scheduler']
+    gen_scheduler = checkpoint['gen_scheduler']
 
 
 def save_params(epoch, save_path):
@@ -797,6 +844,9 @@ def save_params(epoch, save_path):
             'total_label_base_accuracy_validation': total_label_base_accuracy_validation,
             'total_label_base_accuracy_evaluation': total_label_base_accuracy_evaluation,
             'total_label_base_accuracy_test': total_label_base_accuracy_test,
+            'dis_scheduler': dis_scheduler,
+            'cfr_scheduler': cfr_scheduler,
+            'gen_scheduler': gen_scheduler,
         }, model_path_name)
         remove_previous_models(save_path, model_name_path)
     except:
@@ -938,16 +988,10 @@ def train(datasetloader):
             discriminatorLosses.append(lossDiscriminator.item())
             classifierLosses.append(realClassifierLoss.item())
 
-            # get train accurcy
-            # if((i+1) % 10 == 0 ):
-            #   classifier.eval()
-            #   # accuracy
-            #   _, predicted = torch.max(predictions, 1)
-            #   total_train += b_labels.size(0)
-            #   correct_train += predicted.eq(b_labels.data).sum().item()
-            #   train_accuracy = 100 * correct_train / total_train
-            #   print("({}) train_accuracy : {}".format(i+1,train_accuracy))
-            #   classifier.train()
+            if apply_scheduler:
+                dis_scheduler.step()
+                cfr_scheduler.step()
+                gen_scheduler.step()
 
         log_print("Epoch " + str(epoch_i+1) + " Complete")
         log_print("Epoch Time : ", time.time()-t0)
