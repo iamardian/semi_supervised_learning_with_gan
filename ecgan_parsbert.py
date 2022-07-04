@@ -65,13 +65,12 @@ def datasets_summary(train, validation, test, dataset_name):
     log_print(f"Total : {test_len}")
 
 
-def print_params(params, file_path):
+def print_params(params):
     param_list = []
     cols = ["param", "value"]
     for x in params:
         param_list.append([x, params[x]])
     df = pd.DataFrame(param_list, columns=cols)
-    df.to_json(file_path + "params.json")
     log_print(df.to_string(index=False))
 
 
@@ -157,6 +156,8 @@ def log_print(*args):
     for a in args:
         print(a, end=' ')
         print(a, file=open(models_path+"/log_file.txt", 'a'), end=' ')
+
+    print()
 
 
 # Set random values
