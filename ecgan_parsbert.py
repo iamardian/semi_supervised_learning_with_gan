@@ -621,12 +621,11 @@ def get_scheduler(optimizer):
 
 
 dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[optimizer]()
-dis_scheduler, cfr_scheduler, gen_scheduler = None
+dis_scheduler, cfr_scheduler, gen_scheduler = None, None, None
 if apply_scheduler:
     dis_scheduler = get_scheduler(dis_optimizer)
     cfr_scheduler = get_scheduler(cfr_optimizer)
     gen_scheduler = get_scheduler(gen_optimizer)
-    pass
 
 
 # # optimizer
