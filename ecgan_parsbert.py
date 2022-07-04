@@ -24,6 +24,14 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 #!pip install sentencepiece
 
 
+def create_path_if_not_exists(dir_path):
+    # print("call create_path_if_not_exists")
+    # print(f"dir_path : {dir_path}")
+    if os.path.exists(dir_path):
+        return
+    os.makedirs(dir_path, exist_ok=True)
+
+
 def datasets_summary(train, validation, test, dataset_name):
     train_data = pd.DataFrame(train, columns=["data", "label_id"])
     validation_data = pd.DataFrame(validation, columns=["data", "label_id"])
@@ -141,6 +149,8 @@ dir_name = f"ec_gan|" +\
 
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
+
+create_path_if_not_exists(models_path)
 
 
 def log_print(*args):
@@ -752,14 +762,6 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
     total_label_base_accuracy_validation = checkpoint['total_label_base_accuracy_validation']
     total_label_base_accuracy_evaluation = checkpoint['total_label_base_accuracy_evaluation']
     total_label_base_accuracy_test = checkpoint['total_label_base_accuracy_test']
-
-
-def create_path_if_not_exists(dir_path):
-    # print("call create_path_if_not_exists")
-    # print(f"dir_path : {dir_path}")
-    if os.path.exists(dir_path):
-        return
-    os.makedirs(dir_path, exist_ok=True)
 
 
 def save_params(epoch, save_path):
