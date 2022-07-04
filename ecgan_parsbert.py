@@ -767,7 +767,7 @@ def find_latest_model_name(dir_path):
     return model_name
 
 
-def load_params(load_path, classifier, generator, discriminator, transformer, cfr_optimizer, gen_optimizer, dis_optimizer):
+def load_params(load_path, classifier, generator, discriminator, transformer, cfr_optimizer, gen_optimizer, dis_optimizer, dis_scheduler, cfr_scheduler, gen_scheduler):
     # print("call load_params")
     if not os.path.exists(load_path+"/best"):
         # print("not exists path : ", load_path)
@@ -781,7 +781,6 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
     global offset, best_model_accuracy, generatorLosses, discriminatorLosses, classifierLosses
     global total_acc_validation, total_acc_evaluation
     global total_label_base_accuracy_validation, total_label_base_accuracy_evaluation, total_label_base_accuracy_test
-    global dis_scheduler, cfr_scheduler, gen_scheduler
 
     offset = checkpoint['epoch']
     # print(f"offset : {offset}")
@@ -876,7 +875,7 @@ def remove_previous_models(dir_path, current_model):
 def train(datasetloader):
     log_print("Training Start : ")
     load_params(models_path, classifier, generator, discriminator,
-                transformer, cfr_optimizer, gen_optimizer, dis_optimizer)
+                transformer, cfr_optimizer, gen_optimizer, dis_optimizer, dis_scheduler, cfr_scheduler, gen_scheduler)
     for epoch_i in range(offset+1, num_train_epochs):
 
         classifier.train()
