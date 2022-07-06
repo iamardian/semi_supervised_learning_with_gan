@@ -611,21 +611,22 @@ optimizations = {
 }
 
 
-def get_scheduler(optimizer):
+def get_scheduler(optimizer, lr):
     if apply_scheduler:
         num_train_examples = len(train_examples)
         num_train_steps = int(num_train_examples /
                               batch_size * num_train_epochs)
         num_warmup_steps = int(num_train_steps * warmup_proportion)
-        return get_constant_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps)
+        # return get_constant_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps)
+        return torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=lr, epochs=num_train_epochs, steps_per_epoch=num_train_examples, anneal_strategy='linear')
 
 
 dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[optimizer]()
 dis_scheduler, cfr_scheduler, gen_scheduler = None, None, None
 if apply_scheduler:
-    dis_scheduler = get_scheduler(dis_optimizer)
-    cfr_scheduler = get_scheduler(cfr_optimizer)
-    gen_scheduler = get_scheduler(gen_optimizer)
+    dis_scheduler = get_scheduler(dis_optimizer, learning_rate_discriminator)
+    cfr_scheduler = get_scheduler(cfr_optimizer, learning_rate_classifier)
+    gen_scheduler = get_scheduler(gen_optimizer, learning_rate_generator)
 
 
 # # optimizer
