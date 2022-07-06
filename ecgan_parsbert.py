@@ -808,9 +808,9 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
     total_label_base_accuracy_evaluation = checkpoint['total_label_base_accuracy_evaluation']
     total_label_base_accuracy_test = checkpoint['total_label_base_accuracy_test']
 
-    dis_scheduler.load_state_dict(checkpoint['dis_scheduler'])
-    cfr_scheduler.load_state_dict(checkpoint['cfr_scheduler'])
-    gen_scheduler.load_state_dict(checkpoint['gen_scheduler'])
+    # dis_scheduler.load_state_dict(checkpoint['dis_scheduler'])
+    # cfr_scheduler.load_state_dict(checkpoint['cfr_scheduler'])
+    # gen_scheduler.load_state_dict(checkpoint['gen_scheduler'])
 
 
 def save_params(epoch, save_path):
@@ -843,9 +843,9 @@ def save_params(epoch, save_path):
             'total_label_base_accuracy_validation': total_label_base_accuracy_validation,
             'total_label_base_accuracy_evaluation': total_label_base_accuracy_evaluation,
             'total_label_base_accuracy_test': total_label_base_accuracy_test,
-            'dis_scheduler': dis_scheduler.state_dict(),
-            'cfr_scheduler': cfr_scheduler.state_dict(),
-            'gen_scheduler': gen_scheduler.state_dict(),
+            # 'dis_scheduler': dis_scheduler.state_dict(),
+            # 'cfr_scheduler': cfr_scheduler.state_dict(),
+            # 'gen_scheduler': gen_scheduler.state_dict(),
         }, model_path_name)
         remove_previous_models(save_path, model_name_path)
     except Exception as e:
