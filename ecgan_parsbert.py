@@ -995,11 +995,11 @@ def train(datasetloader):
                 gen_scheduler.step()
 
         log_print("Epoch " + str(epoch_i+1) + " Complete")
-        log_print("Epoch Time : ", time.time()-t0)
         evaluation(epoch_i)
         validation_acc = validate(epoch_i)
         save_best_model(models_path, epoch_i, validation_acc)
         save_params(epoch_i, models_path)
+        log_print("Epoch Time : ", time.time()-t0)
 
 
 def per_label_accuracy(b_labels, predicted, class_accuracies):
