@@ -618,7 +618,7 @@ def get_scheduler(optimizer, lr):
                               batch_size * num_train_epochs)
         num_warmup_steps = int(num_train_steps * warmup_proportion)
         # return get_constant_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps)
-        return get_linear_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps)
+        return get_linear_schedule_with_warmup(optimizer,num_training_steps=num_train_steps, num_warmup_steps=num_warmup_steps)
         # return torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=lr, epochs=num_train_epochs, steps_per_epoch=num_train_examples, anneal_strategy='linear')
 
 
