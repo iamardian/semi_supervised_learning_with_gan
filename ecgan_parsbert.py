@@ -611,23 +611,23 @@ optimizations = {
 }
 
 
-def get_scheduler(optimizer, lr):
+def get_scheduler(optimizer, last_epoch=-1):
     if apply_scheduler:
         num_train_examples = len(train_examples)
         num_train_steps = int(num_train_examples /
                               batch_size * num_train_epochs)
         num_warmup_steps = int(num_train_steps * warmup_proportion)
         # return get_constant_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps)
-        return get_linear_schedule_with_warmup(optimizer,num_training_steps=num_train_steps, num_warmup_steps=num_warmup_steps)
+        return get_linear_schedule_with_warmup(optimizer, num_training_steps=num_train_steps, num_warmup_steps=num_warmup_steps, last_epoch=last_epoch)
         # return torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=lr, epochs=num_train_epochs, steps_per_epoch=num_train_examples, anneal_strategy='linear')
 
 
 dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[optimizer]()
 dis_scheduler, cfr_scheduler, gen_scheduler = None, None, None
 if apply_scheduler:
-    dis_scheduler = get_scheduler(dis_optimizer, learning_rate_discriminator)
-    cfr_scheduler = get_scheduler(cfr_optimizer, learning_rate_classifier)
-    gen_scheduler = get_scheduler(gen_optimizer, learning_rate_generator)
+    dis_scheduler = get_scheduler(dis_optimizer)
+    cfr_scheduler = get_scheduler(cfr_optimizer)
+    gen_scheduler = get_scheduler(gen_optimizer)
 
 
 # # optimizer
@@ -809,9 +809,9 @@ def load_params(load_path, classifier, generator, discriminator, transformer, cf
     total_label_base_accuracy_evaluation = checkpoint['total_label_base_accuracy_evaluation']
     total_label_base_accuracy_test = checkpoint['total_label_base_accuracy_test']
 
-    # dis_scheduler.load_state_dict(checkpoint['dis_scheduler'])
-    # cfr_scheduler.load_state_dict(checkpoint['cfr_scheduler'])
-    # gen_scheduler.load_state_dict(checkpoint['gen_scheduler'])
+    dis_scheduler = get_scheduler(dis_optimizer, offset)
+    cfr_scheduler = get_scheduler(cfr_optimizer, offset)
+    gen_scheduler = get_scheduler(gen_optimizer, offset)
 
 
 def save_params(epoch, save_path):
