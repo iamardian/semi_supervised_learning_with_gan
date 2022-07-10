@@ -79,7 +79,7 @@ def print_params(params):
 ##########################
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:"
+options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:d:"
 # Long options
 long_options = ["help",
                 "dataset",
@@ -94,9 +94,20 @@ long_options = ["help",
                 "generator_rate",
                 "discriminator_rate",
                 "scheduler",
-                "warmup_proportion"
+                "warmup_proportion",
+                "model"
                 ]
 
+model_repo = {
+    "parsbert": "HooshvareLab/bert-fa-base-uncased",
+    "bert": "bert-base-cased",
+    "robert": "roberta-base",
+    "amazon": "amazon/bort",
+    "albert": "albert-base-v2",
+}
+
+model_title = "parsbert"
+model_name = model_repo[model_title]
 dataset_name = "persiannews"
 percentage_labeled_data = 0.1
 adversarial_weight = 0.1
@@ -145,6 +156,9 @@ try:
             apply_scheduler = bool(currentValue)
         elif currentArgument in ("-u", "--warmup_propotion"):
             warmup_proportion = float(currentValue)
+        elif currentArgument in ("-d", "--model"):
+            model_title = currentValue
+            model_name = model_repo[model_title]
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -167,7 +181,9 @@ dir_name = f"ec_gan|" +\
     f"g_lr({learning_rate_generator})|" +\
     f"c_lr({learning_rate_classifier})|" +\
     f"sch({apply_scheduler})|" +\
-    f"warmup_proportion({warmup_proportion})"
+    f"sch({apply_scheduler})|" +\
+    f"warmup_proportion({warmup_proportion})" +\
+    f"model({model_title})"
 
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
@@ -252,9 +268,6 @@ multi_gpu = False
 # Print
 print_each_n_step = 10
 
-#model_name = "HooshvareLab/bert-fa-base-uncased"
-# @param ["HooshvareLab/bert-fa-base-uncased","HooshvareLab/bert-fa-zwnj-base"] {allow-input: true}
-model_name = 'HooshvareLab/bert-fa-base-uncased'
 
 dataset = dataset_name
 cmd_str = "git clone https://github.com/iamardian/{}.git".format(dataset)
