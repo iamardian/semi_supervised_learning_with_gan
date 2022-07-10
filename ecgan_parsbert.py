@@ -79,7 +79,7 @@ def print_params(params):
 ##########################
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:d:"
+options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:"
 # Long options
 long_options = ["help",
                 "dataset",
@@ -156,7 +156,7 @@ try:
             apply_scheduler = bool(currentValue)
         elif currentArgument in ("-u", "--warmup_propotion"):
             warmup_proportion = float(currentValue)
-        elif currentArgument in ("-d", "--model"):
+        elif currentArgument in ("-a", "--model"):
             model_title = currentValue
             model_name = model_repo[model_title]
 except getopt.error as err:
