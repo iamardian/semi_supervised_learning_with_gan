@@ -79,7 +79,7 @@ def print_params(params):
 ##########################
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:"
+options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:C:G:D:"
 # Long options
 long_options = ["help",
                 "dataset",
@@ -95,7 +95,10 @@ long_options = ["help",
                 "discriminator_rate",
                 "scheduler",
                 "warmup_proportion",
-                "model"
+                "model",
+                "classifier_layer",
+                "generator_layer",
+                "discriminator_layer",
                 ]
 
 model_repo = {
@@ -119,6 +122,10 @@ optimizer = "adamW"
 learning_rate_discriminator = 5e-5
 learning_rate_generator = 5e-5
 learning_rate_classifier = 5e-5
+
+num_hidden_layers_c = 1
+num_hidden_layers_g = 1
+num_hidden_layers_d = 1
 
 # Scheduler
 apply_scheduler = False
@@ -159,6 +166,12 @@ try:
         elif currentArgument in ("-a", "--model"):
             model_title = currentValue
             model_name = model_repo[model_title]
+        elif currentArgument in ("-C", "--classifier_layer"):
+            num_hidden_layers_c = int(currentValue)
+        elif currentArgument in ("-G", "--generator_layer"):
+            num_hidden_layers_g = int(currentValue)
+        elif currentArgument in ("-D", "--discriminator_layer"):
+            num_hidden_layers_d = int(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -181,8 +194,10 @@ dir_name = f"ec_gan|" +\
     f"g_lr({learning_rate_generator})|" +\
     f"c_lr({learning_rate_classifier})|" +\
     f"sch({apply_scheduler})|" +\
-    f"sch({apply_scheduler})|" +\
     f"warmup_proportion({warmup_proportion})" +\
+    f"n_h_l_c({num_hidden_layers_c})" +\
+    f"n_h_l_g({num_hidden_layers_g})" +\
+    f"n_h_l_d({num_hidden_layers_d})" +\
     f"model({model_title})"
 
 models_path = os.path.join(default_path_str, dir_name)
@@ -233,18 +248,6 @@ dataSizeConstant = percentage_labeled_data
 max_seq_length = 128
 batch_size = 32
 
-
-# --------------------------------
-#  GAN-BERT specific parameters
-# --------------------------------
-# number of hidden layers in the generator,
-# each of the size of the output space
-num_hidden_layers_g = 1
-# number of hidden layers in the discriminator,
-# each of the size of the input space
-num_hidden_layers_d = 1
-
-num_hidden_layers_c = 1
 
 # size of the generator's input noisy vectors
 noise_size = 100
