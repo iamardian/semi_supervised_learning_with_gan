@@ -1,6 +1,7 @@
 
 # !pip install transformers==4.3.2
 from asyncio import constants
+from distutils import util
 import sys
 import getopt
 from genericpath import exists
@@ -109,27 +110,44 @@ model_repo = {
     "albert": "albert-base-v2",
 }
 
-model_title = "parsbert"
-model_name = model_repo[model_title]
-dataset_name = "persiannews"
-percentage_labeled_data = 0.1
-adversarial_weight = 0.1
-confidence_thresh = 0.2
-num_epochs = 10
-balance_label = False
-train_BERT_mode = 0  # 0 = freeze | -1 = full | positive number = n latest layer of BERT
-optimizer = "adamW"
-learning_rate_discriminator = 5e-5
-learning_rate_generator = 5e-5
-learning_rate_classifier = 5e-5
 
-num_hidden_layers_c = 1
-num_hidden_layers_g = 1
-num_hidden_layers_d = 1
+class config:
+    model_title = "parsbert"
+    model_name = model_repo[model_title]
+    dataset_name = "persiannews"
+    percentage_labeled_data = 0.1
+    adversarial_weight = 0.1
+    confidence_thresh = 0.2
+    num_epochs = 10
+    balance_label = False
+    train_BERT_mode = 0  # 0 = freeze | -1 = full | positive number = n latest layer of BERT
+    optimizer = "adamW"
+    learning_rate_discriminator = 5e-5
+    learning_rate_generator = 5e-5
+    learning_rate_classifier = 5e-5
 
-# Scheduler
-apply_scheduler = False
-warmup_proportion = 0.1
+    num_hidden_layers_c = 1
+    num_hidden_layers_g = 1
+    num_hidden_layers_d = 1
+
+    apply_scheduler = False
+    warmup_proportion = 0.1
+
+    def get_members():
+        return [attr for attr in dir(config) if not attr.startswith("__") and not callable(getattr(config, attr))]
+
+    def to_string():
+        name = "[ec_gan]"
+        members = config.get_members()
+        for var in members:
+            y = var.split("_")
+            x = ""
+            for y2 in y:
+                x = x+y2[0]
+            name = name + f"[{x}_{getattr(config, var)}]"
+        return name
+
+
 try:
     # Parsing argument
     arguments, values = getopt.getopt(argumentList, options, long_options)
@@ -138,68 +156,66 @@ try:
         if currentArgument in ("-h", "--help"):
             print("Displaying Help")
         elif currentArgument in ("-d", "--dataset"):
-            dataset_name = currentValue
+            config.dataset_name = currentValue
         elif currentArgument in ("-p", "--percentage"):
-            percentage_labeled_data = float(currentValue)
+            config.percentage_labeled_data = float(currentValue)
         elif currentArgument in ("-w", "--weight"):
-            adversarial_weight = float(currentValue)
+            config.adversarial_weight = float(currentValue)
         elif currentArgument in ("-t", "--thresh"):
-            confidence_thresh = float(currentValue)
+            config.confidence_thresh = float(currentValue)
         elif currentArgument in ("-e", "--epochs"):
-            num_epochs = int(currentValue)
+            config.num_epochs = int(currentValue)
         elif currentArgument in ("-l", "--label_balance"):
-            balance_label = bool(currentValue)
+            config.balance_label = bool(util.strtobool(currentValue))
         elif currentArgument in ("-m", "--mode"):
-            train_BERT_mode = int(currentValue)
+            config.train_BERT_mode = int(currentValue)
         elif currentArgument in ("-o", "--optimizer"):
-            optimizer = str(currentValue)
+            config.optimizer = str(currentValue)
         elif currentArgument in ("-c", "--classifier_rate"):
-            learning_rate_classifier = float(currentValue)
+            config.learning_rate_classifier = float(currentValue)
         elif currentArgument in ("-g", "--generator_rate"):
-            learning_rate_generator = float(currentValue)
+            config.learning_rate_generator = float(currentValue)
         elif currentArgument in ("-r", "--discriminator_rate"):
-            learning_rate_discriminator = float(currentValue)
+            config.learning_rate_discriminator = float(currentValue)
         elif currentArgument in ("-s", "--scheduler"):
-            apply_scheduler = bool(currentValue)
+            config.apply_scheduler = bool(util.strtobool(currentValue))
         elif currentArgument in ("-u", "--warmup_propotion"):
-            warmup_proportion = float(currentValue)
+            config.warmup_proportion = float(currentValue)
         elif currentArgument in ("-a", "--model"):
-            model_title = currentValue
-            model_name = model_repo[model_title]
+            config.model_title = currentValue
+            config.model_name = model_repo[config.model_title]
         elif currentArgument in ("-C", "--classifier_layer"):
-            num_hidden_layers_c = int(currentValue)
+            config.num_hidden_layers_c = int(currentValue)
         elif currentArgument in ("-G", "--generator_layer"):
-            num_hidden_layers_g = int(currentValue)
+            config.num_hidden_layers_g = int(currentValue)
         elif currentArgument in ("-D", "--discriminator_layer"):
-            num_hidden_layers_d = int(currentValue)
+            config.num_hidden_layers_d = int(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
 
-# print("Dataset : {} \nPercentage : {}".format(
-#     dataset_name, percentage_labeled_data))
-
 
 default_path_str = "/content/drive/MyDrive/NLP/save/"
-dir_name = f"ec_gan|" +\
-    f"data({dataset_name})|" +\
-    f"ration({percentage_labeled_data})|" +\
-    f"weight({adversarial_weight})|" +\
-    f"thresh({confidence_thresh})|" +\
-    f"epochs({num_epochs})|" +\
-    f"label_balance({balance_label})|" +\
-    f"layer({train_BERT_mode})|" +\
-    f"optimizer({optimizer})|" +\
-    f"d_lr({learning_rate_discriminator})|" +\
-    f"g_lr({learning_rate_generator})|" +\
-    f"c_lr({learning_rate_classifier})|" +\
-    f"sch({apply_scheduler})|" +\
-    f"warmup_proportion({warmup_proportion})" +\
-    f"n_h_l_c({num_hidden_layers_c})" +\
-    f"n_h_l_g({num_hidden_layers_g})" +\
-    f"n_h_l_d({num_hidden_layers_d})" +\
-    f"model({model_title})"
+# dir_name = f"ec_gan|" +\
+#     f"data({config.dataset_name})|" +\
+#     f"ration({config.percentage_labeled_data})|" +\
+#     f"weight({config.adversarial_weight})|" +\
+#     f"thresh({config.confidence_thresh})|" +\
+#     f"epochs({config.num_epochs})|" +\
+#     f"label_balance({config.balance_label})|" +\
+#     f"layer({config.train_BERT_mode})|" +\
+#     f"optimizer({config.optimizer})|" +\
+#     f"d_lr({config.learning_rate_discriminator})|" +\
+#     f"g_lr({config.learning_rate_generator})|" +\
+#     f"c_lr({config.learning_rate_classifier})|" +\
+#     f"sch({config.apply_scheduler})|" +\
+#     f"warmup_proportion({config.warmup_proportion})" +\
+#     f"n_h_l_c({config.num_hidden_layers_c})" +\
+#     f"n_h_l_g({config.num_hidden_layers_g})" +\
+#     f"n_h_l_d({config.num_hidden_layers_d})" +\
+#     f"model({config.model_title})"
 
+dir_name = config.to_string()
 models_path = os.path.join(default_path_str, dir_name)
 best_model_name = "best_model"
 
@@ -207,6 +223,7 @@ create_path_if_not_exists(models_path)
 
 
 def log_print(*args):
+    # TODO Fix write to file
     source_file = open(models_path+"/log_file.txt", 'a')
     print()
     print("\n", file=source_file)
@@ -240,7 +257,7 @@ else:
 """
 
 
-dataSizeConstant = percentage_labeled_data
+dataSizeConstant = config.percentage_labeled_data
 
 # --------------------------------
 #  Transformer parameters
@@ -264,7 +281,7 @@ apply_balance = True
 
 epsilon = 1e-8
 
-num_train_epochs = num_epochs
+num_train_epochs = config.num_epochs
 
 multi_gpu = False
 
@@ -272,7 +289,7 @@ multi_gpu = False
 print_each_n_step = 10
 
 
-dataset = dataset_name
+dataset = config.dataset_name
 cmd_str = "git clone https://github.com/iamardian/{}.git".format(dataset)
 os.system(cmd_str)
 labeled_file = "./{}/train.csv".format(dataset)
@@ -285,8 +302,8 @@ test_filename = "./{}/test.csv".format(dataset)
 
 """Load the Tranformer Model"""
 
-transformer = AutoModel.from_pretrained(model_name)
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+transformer = AutoModel.from_pretrained(config.model_name)
+tokenizer = AutoTokenizer.from_pretrained(config.model_name)
 
 """Function required to load the dataset"""
 
@@ -320,7 +337,7 @@ def get_qc_examples(input_file, dataSizeConstant, title):
 
 
 # Load the examples
-if balance_label:
+if config.balance_label:
     labeled_examples = get_balance_labeled_example(
         labeled_file, dataSizeConstant)
 else:
@@ -336,7 +353,7 @@ validation_examples = get_qc_examples(
 test_examples = get_qc_examples(test_filename, -1, "Test Dataset")
 
 datasets_summary(labeled_examples, validation_examples,
-                 test_examples, dataset_name)
+                 test_examples, config.dataset_name)
 
 """Functions required to convert examples into Dataloader"""
 
@@ -530,12 +547,12 @@ class Classifier(nn.Module):
 
 # The config file is required to get the dimension of the vector produced by
 # the underlying transformer
-config = AutoConfig.from_pretrained(model_name)
+config = AutoConfig.from_pretrained(config.model_name)
 hidden_size = int(config.hidden_size)
 # Define the number and width of hidden layers
-hidden_levels_g = [hidden_size for i in range(0, num_hidden_layers_g)]
-hidden_levels_d = [hidden_size for i in range(0, num_hidden_layers_d)]
-hidden_levels_c = [hidden_size for i in range(0, num_hidden_layers_c)]
+hidden_levels_g = [hidden_size for i in range(0, config.num_hidden_layers_g)]
+hidden_levels_d = [hidden_size for i in range(0, config.num_hidden_layers_d)]
+hidden_levels_c = [hidden_size for i in range(0, config.num_hidden_layers_c)]
 
 # -------------------------------------------------
 #   Instantiate the Generator and Discriminator
@@ -592,7 +609,7 @@ def bert_params_for_tune(model, mode):
 # print("========================== BEFORE ==========================")
 # print_model_params(transformer)
 
-transformer_vars = bert_params_for_tune(transformer, train_BERT_mode)
+transformer_vars = bert_params_for_tune(transformer, config.train_BERT_mode)
 
 # print("========================== AFTER ==========================")
 # print_model_params(transformer)
@@ -607,17 +624,22 @@ g_vars = [v for v in generator.parameters()]
 
 def optimizer_adam():
     # optimizer
-    dis_optimizer = torch.optim.Adam(d_vars, lr=learning_rate_discriminator)
-    cfr_optimizer = torch.optim.Adam(c_vars, lr=learning_rate_classifier)
-    gen_optimizer = torch.optim.Adam(g_vars, lr=learning_rate_generator)
+    dis_optimizer = torch.optim.Adam(
+        d_vars, lr=config.learning_rate_discriminator)
+    cfr_optimizer = torch.optim.Adam(
+        c_vars, lr=config.learning_rate_classifier)
+    gen_optimizer = torch.optim.Adam(g_vars, lr=config.learning_rate_generator)
     return dis_optimizer, cfr_optimizer, gen_optimizer
 
 
 def optimizer_adamW():
     # optimizer
-    dis_optimizer = torch.optim.AdamW(d_vars, lr=learning_rate_discriminator)
-    cfr_optimizer = torch.optim.AdamW(c_vars, lr=learning_rate_classifier)
-    gen_optimizer = torch.optim.AdamW(g_vars, lr=learning_rate_generator)
+    dis_optimizer = torch.optim.AdamW(
+        d_vars, lr=config.learning_rate_discriminator)
+    cfr_optimizer = torch.optim.AdamW(
+        c_vars, lr=config.learning_rate_classifier)
+    gen_optimizer = torch.optim.AdamW(
+        g_vars, lr=config.learning_rate_generator)
     return dis_optimizer, cfr_optimizer, gen_optimizer
 
 
@@ -628,31 +650,24 @@ optimizations = {
 
 
 def get_scheduler(optimizer, last_epoch=-1):
-    if apply_scheduler:
+    if config.apply_scheduler:
         num_train_examples = len(train_examples)
         num_train_steps = int(num_train_examples /
                               batch_size * num_train_epochs)
-        num_warmup_steps = int(num_train_steps * warmup_proportion)
+        num_warmup_steps = int(num_train_steps * config.warmup_proportion)
         # return get_constant_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps)
         return get_linear_schedule_with_warmup(optimizer, num_training_steps=num_train_steps, num_warmup_steps=num_warmup_steps, last_epoch=last_epoch)
         # return torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=lr, epochs=num_train_epochs, steps_per_epoch=num_train_examples, anneal_strategy='linear')
 
 
-dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[optimizer]()
+dis_optimizer, cfr_optimizer, gen_optimizer = optimizations[config.optimizer]()
 dis_scheduler, cfr_scheduler, gen_scheduler = None, None, None
-if apply_scheduler:
+if config.apply_scheduler:
     dis_scheduler = get_scheduler(dis_optimizer)
     cfr_scheduler = get_scheduler(cfr_optimizer)
     gen_scheduler = get_scheduler(gen_optimizer)
 
-
-# # optimizer
-# dis_optimizer = torch.optim.AdamW(d_vars, lr=learning_rate_discriminator)
-# cfr_optimizer = torch.optim.AdamW(c_vars, lr=learning_rate_classifier)
-# gen_optimizer = torch.optim.AdamW(g_vars, lr=learning_rate_generator)
-
-
-advWeight = adversarial_weight  # adversarial weight
+advWeight = config.adversarial_weight  # adversarial weight
 offset = -1
 
 loss = nn.BCELoss()
@@ -670,18 +685,18 @@ best_model_accuracy = 0
 
 
 params_obj = {
-    "Dataset": dataset_name,
-    "Percentage": percentage_labeled_data,
-    "Adversarial Weight": adversarial_weight,
-    "Epochs": num_epochs,
-    "Balance label": balance_label,
+    "Dataset": config.dataset_name,
+    "Percentage": config.percentage_labeled_data,
+    "Adversarial Weight": config.adversarial_weight,
+    "Epochs": config.num_epochs,
+    "Balance label": config.balance_label,
     "Batch size": batch_size,
-    "Model name": model_name,
-    "train_BERT_mode": train_BERT_mode,
-    "optimizer": optimizer,
-    "learning_rate_discriminator": learning_rate_discriminator,
-    "learning_rate_generator": learning_rate_generator,
-    "learning_rate_classifier": learning_rate_classifier,
+    "Model name": config.model_name,
+    "train_BERT_mode": config.train_BERT_mode,
+    "optimizer": config.optimizer,
+    "learning_rate_discriminator": config.learning_rate_discriminator,
+    "learning_rate_generator": config.learning_rate_generator,
+    "learning_rate_classifier": config.learning_rate_classifier,
 }
 log_print("===========================================")
 print_params(params_obj)
@@ -699,12 +714,7 @@ def load_best_model(load_path):
         return False
     best_model_path = load_path + "/" + f"{best_model_name}.pth"
     checkpoint = torch.load(best_model_path)
-    # transformer = AutoModel.from_pretrained(model_name)
-    # classifier = Classifier(input_size=hidden_size, hidden_sizes=hidden_levels_c,
-    #                         num_labels=len(label_list), dropout_rate=out_dropout_rate)
-    # transformer.load_state_dict(checkpoint['transformer_state_dict'])
     classifier.load_state_dict(checkpoint['classifier_state_dict'])
-    # tokenizer2 = tokenizer.from_pretrained(output_dir)
     transformer2 = AutoModel.from_pretrained(output_dir)
     return transformer2, classifier
 
@@ -770,19 +780,19 @@ def print_test_accuracy(acc):
 
 def find_latest_model_name(dir_path):
     # print("call find_latest_model_name")
-    model_name = ""
+    latest_model_name = ""
     if not os.path.exists(dir_path):
-        return model_name
+        return latest_model_name
     files = sorted(filter(os.path.isfile, glob.glob(dir_path + '/*.pth')))
     if len(files) == 0:
-        return model_name
+        return latest_model_name
     for f in reversed(range(len(files))):
         if "best" in files[f]:
             continue
         else:
-            model_name = files[f]
+            latest_model_name = files[f]
             break
-    return model_name
+    return latest_model_name
 
 
 def load_params(load_path, classifier, generator, discriminator, transformer, cfr_optimizer, gen_optimizer, dis_optimizer, dis_scheduler, cfr_scheduler, gen_scheduler):
@@ -834,7 +844,7 @@ def save_params(epoch, save_path):
     # print("call save_params")
     try:
         create_path_if_not_exists(save_path)
-        model_name_path = f'{str(epoch).zfill(3)}_{dataset_name}_{percentage_labeled_data}_{adversarial_weight}_{confidence_thresh}.pth'
+        model_name_path = f'{str(epoch).zfill(3)}_{config.dataset_name}_{config.percentage_labeled_data}_{config.adversarial_weight}_{config.confidence_thresh}.pth'
         model_path_name = os.path.join(save_path, model_name_path)
         torch.save({
             'epoch': epoch,
@@ -981,7 +991,7 @@ def train(datasetloader):
             # get a tensor of the labels that are most likely according to model
             predictedLabels = torch.argmax(
                 predictionsFake, 1)  # -> [0 , 5, 9, 3, ...]
-            confidenceThresh = confidence_thresh
+            confidenceThresh = config.confidence_thresh
 
             # psuedo labeling threshold
             probs = F.softmax(predictionsFake, dim=1)
@@ -1005,7 +1015,7 @@ def train(datasetloader):
             discriminatorLosses.append(lossDiscriminator.item())
             classifierLosses.append(realClassifierLoss.item())
 
-            if apply_scheduler:
+            if config.apply_scheduler:
                 dis_scheduler.step()
                 cfr_scheduler.step()
                 gen_scheduler.step()
@@ -1016,6 +1026,10 @@ def train(datasetloader):
         save_best_model(models_path, epoch_i, validation_acc)
         save_params(epoch_i, models_path)
         log_print("Epoch Time : ", time.time()-t0)
+        
+        print_results(total_acc_evaluation, total_acc_validation)
+        print_per_class(total_label_base_accuracy_evaluation,
+                        total_label_base_accuracy_validation)
 
 
 def per_label_accuracy(b_labels, predicted, class_accuracies):
@@ -1172,7 +1186,7 @@ def test(transformer, classifier):
     return accuracy
 
 
-def print_results(train_acc, validation_acc, test_acc):
+def print_results(train_acc, validation_acc, test_acc=[]):
     train_acc.insert(0, "train")
     validation_acc.insert(0, "validation")
     test_acc.insert(0, "test")
@@ -1241,7 +1255,7 @@ def add_chart(workbook, worksheet, s_row, s_col, e_row, e_col, name, lbl, x, y, 
         row, col, chart, {'x_offset': x*(width), 'y_offset': y*(height)})
 
 
-def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc):
+def print_per_class(train_per_lbl_acc, validation_per_lbl_acc, test_per_lbl_acc=[]):
     len_epoch = len(train_per_lbl_acc)
     reformat_epla = change_format(train_per_lbl_acc)
     reformat_vpla = change_format(validation_per_lbl_acc)
