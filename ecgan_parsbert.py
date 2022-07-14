@@ -549,8 +549,8 @@ class Classifier(nn.Module):
 
 # The config file is required to get the dimension of the vector produced by
 # the underlying transformer
-config = AutoConfig.from_pretrained(config.model_name)
-hidden_size = int(config.hidden_size)
+Config = AutoConfig.from_pretrained(config.model_name)
+hidden_size = int(Config.hidden_size)
 # Define the number and width of hidden layers
 hidden_levels_g = [hidden_size for i in range(0, config.num_hidden_layers_g)]
 hidden_levels_d = [hidden_size for i in range(0, config.num_hidden_layers_d)]
