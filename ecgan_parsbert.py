@@ -222,15 +222,17 @@ best_model_name = "best_model"
 create_path_if_not_exists(models_path)
 
 
-def log_print(*args):
-    # TODO Fix write to file
-    source_file = open(models_path+"/log_file.txt", 'a')
-    print()
-    print("\n", file=source_file)
-    for a in args:
-        print(a, end=' ')
-        print(a, file=source_file, end=' ')
-    source_file.close()
+def log_print(*args,end="\n"):
+    with open(models_path+"/log_file.txt", "a+") as source_file:
+        for i in range(len(args)):
+            if i < len(args)-1:
+                print(args[i], end=' ')
+                print(args[i], file=source_file, end=' ')
+            else:
+                print(args[i], end='')
+                print(args[i], file=source_file,end='')
+        print()
+        print(end, file=source_file,end='')
 
 
 # Set random values
