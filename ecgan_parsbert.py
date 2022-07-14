@@ -222,7 +222,7 @@ best_model_name = "best_model"
 create_path_if_not_exists(models_path)
 
 
-def log_print(*args,end="\n"):
+def log_print(*args, end="\n"):
     with open(models_path+"/log_file.txt", "a+") as source_file:
         for i in range(len(args)):
             if i < len(args)-1:
@@ -230,9 +230,9 @@ def log_print(*args,end="\n"):
                 print(args[i], file=source_file, end=' ')
             else:
                 print(args[i], end='')
-                print(args[i], file=source_file,end='')
+                print(args[i], file=source_file, end='')
         print()
-        print(end, file=source_file,end='')
+        print(end, file=source_file, end='')
 
 
 # Set random values
@@ -1028,7 +1028,7 @@ def train(datasetloader):
         save_best_model(models_path, epoch_i, validation_acc)
         save_params(epoch_i, models_path)
         log_print("Epoch Time : ", time.time()-t0)
-        
+
         print_results(total_acc_evaluation, total_acc_validation)
         print_per_class(total_label_base_accuracy_evaluation,
                         total_label_base_accuracy_validation)
@@ -1188,10 +1188,16 @@ def test(transformer, classifier):
     return accuracy
 
 
-def print_results(train_acc, validation_acc, test_acc=[]):
+def print_results(train_accuracy, validation_accuracy, test_accuracy=[]):
+    train_acc = []
+    validation_acc = []
+    test_acc = []
     train_acc.insert(0, "train")
     validation_acc.insert(0, "validation")
     test_acc.insert(0, "test")
+    train_acc.extend(train_accuracy)
+    validation_acc.extend(validation_accuracy)
+    test_acc.extend(test_accuracy)
 
     execl_path = default_path_str + dir_name + f"/{dir_name}.xlsx"
     workbook = xlsxwriter.Workbook(execl_path)
