@@ -141,6 +141,8 @@ class config:
         members = config.get_members()
         members.sort()
         for var in members:
+            if var == "model_name":
+                continue
             y = var.split("_")
             x = ""
             for y2 in y:
