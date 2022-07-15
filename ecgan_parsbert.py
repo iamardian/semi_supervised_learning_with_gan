@@ -75,33 +75,6 @@ def print_params(params):
     log_print(df.to_string(index=False))
 
 
-##########################
-# GET PARAMS WITH SWITCH
-##########################
-argumentList = sys.argv[1:]
-# Options
-options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:C:G:D:"
-# Long options
-long_options = ["help",
-                "dataset",
-                "percentage",
-                "weight",
-                "thresh",
-                "epochs",
-                "label_balance",
-                "mode",
-                "optimizer",
-                "classifier_rate",
-                "generator_rate",
-                "discriminator_rate",
-                "scheduler",
-                "warmup_proportion",
-                "model",
-                "classifier_layer",
-                "generator_layer",
-                "discriminator_layer",
-                ]
-
 model_repo = {
     "parsbert": "HooshvareLab/bert-fa-base-uncased",
     "bert": "bert-base-cased",
@@ -133,6 +106,8 @@ class config:
     apply_scheduler = False
     warmup_proportion = 0.1
 
+    enable_GAN = True
+
     def get_members():
         return [attr for attr in dir(config) if not attr.startswith("__") and not callable(getattr(config, attr))]
 
@@ -149,6 +124,35 @@ class config:
                 x = x+y2[0]
             name = name + f"{x}_{getattr(config, var)}|"
         return name[:-1]
+
+
+##########################
+# GET PARAMS WITH SWITCH
+##########################
+argumentList = sys.argv[1:]
+# Options
+options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:C:G:D:E:"
+# Long options
+long_options = ["help",
+                "dataset",
+                "percentage",
+                "weight",
+                "thresh",
+                "epochs",
+                "label_balance",
+                "mode",
+                "optimizer",
+                "classifier_rate",
+                "generator_rate",
+                "discriminator_rate",
+                "scheduler",
+                "warmup_proportion",
+                "model",
+                "classifier_layer",
+                "generator_layer",
+                "discriminator_layer",
+                "enable_gan",
+                ]
 
 
 try:
@@ -193,6 +197,8 @@ try:
             config.num_hidden_layers_g = int(currentValue)
         elif currentArgument in ("-D", "--discriminator_layer"):
             config.num_hidden_layers_d = int(currentValue)
+        elif currentArgument in ("-E", "--enable_gan"):
+            config.enable_GAN = bool(util.strtobool(currentValue))
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -946,13 +952,14 @@ def train(datasetloader):
 
             tmpBatchSize = b_input_ids.shape[0]
 
-            # create label arrays
-            true_label = torch.ones(tmpBatchSize, device=device)
-            fake_label = torch.zeros(tmpBatchSize, device=device)
+            if config.enable_GAN:
+                # create label arrays
+                true_label = torch.ones(tmpBatchSize, device=device)
+                fake_label = torch.zeros(tmpBatchSize, device=device)
 
-            noise = torch.zeros(tmpBatchSize, noise_size,
-                                device=device).uniform_(0, 1)
-            fakeImageBatch = generator(noise)
+                noise = torch.zeros(tmpBatchSize, noise_size,
+                                    device=device).uniform_(0, 1)
+                fakeImageBatch = generator(noise)
 
             real_cpu = batch[0].to(device)
             batch_size = real_cpu.size(0)
@@ -962,26 +969,28 @@ def train(datasetloader):
                 b_input_ids, attention_mask=b_input_mask)
             hidden_states = model_outputs[-1]
 
-            # train discriminator on real images
-            predictionsReal = discriminator(hidden_states)
-            lossDiscriminator = loss(predictionsReal, true_label)  # labels = 1
-            lossDiscriminator.backward(retain_graph=True)
+            if config.enable_GAN:
+                # train discriminator on real images
+                predictionsReal = discriminator(hidden_states)
+                lossDiscriminator = loss(predictionsReal, true_label)  # labels = 1
+                lossDiscriminator.backward(retain_graph=True)
 
-            # train discriminator on fake images
-            predictionsFake = discriminator(fakeImageBatch)
-            lossFake = loss(predictionsFake, fake_label)  # labels = 0
-            lossFake.backward(retain_graph=True)
-            dis_optimizer.step()  # update discriminator parameters
+                # train discriminator on fake images
+                predictionsFake = discriminator(fakeImageBatch)
+                lossFake = loss(predictionsFake, fake_label)  # labels = 0
+                lossFake.backward(retain_graph=True)
+                dis_optimizer.step()  # update discriminator parameters
 
-            # train generator
-            gen_optimizer.zero_grad()
-            predictionsFake = discriminator(fakeImageBatch)
-            lossGenerator = loss(predictionsFake, true_label)  # labels = 1
-            lossGenerator.backward(retain_graph=True)
-            gen_optimizer.step()
+                # train generator
+                gen_optimizer.zero_grad()
+                predictionsFake = discriminator(fakeImageBatch)
+                lossGenerator = loss(predictionsFake, true_label)  # labels = 1
+                lossGenerator.backward(retain_graph=True)
+                gen_optimizer.step()
 
             torch.autograd.set_detect_anomaly(True)
-            fakeImageBatch = fakeImageBatch.detach().clone()
+            if config.enable_GAN:
+                fakeImageBatch = fakeImageBatch.detach().clone()
 
             # train classifier on real data
             predictions = classifier(hidden_states)
@@ -991,39 +1000,43 @@ def train(datasetloader):
             cfr_optimizer.step()
             cfr_optimizer.zero_grad()
 
-            # update the classifer on fake data
-            predictionsFake = classifier(fakeImageBatch)
-            # get a tensor of the labels that are most likely according to model
-            predictedLabels = torch.argmax(
-                predictionsFake, 1)  # -> [0 , 5, 9, 3, ...]
-            confidenceThresh = config.confidence_thresh
+            if config.enable_GAN:
+                # update the classifer on fake data
+                predictionsFake = classifier(fakeImageBatch)
+                # get a tensor of the labels that are most likely according to model
+                predictedLabels = torch.argmax(
+                    predictionsFake, 1)  # -> [0 , 5, 9, 3, ...]
+                confidenceThresh = config.confidence_thresh
 
-            # psuedo labeling threshold
-            probs = F.softmax(predictionsFake, dim=1)
-            mostLikelyProbs = np.asarray(
-                [probs[i, predictedLabels[i]].item() for i in range(len(probs))])
-            toKeep = mostLikelyProbs > confidenceThresh
-            if sum(toKeep) != 0:
-                fakeClassifierLoss = criterion(
-                    predictionsFake[toKeep], predictedLabels[toKeep]) * advWeight
-                fakeClassifierLoss.backward()
+                # psuedo labeling threshold
+                probs = F.softmax(predictionsFake, dim=1)
+                mostLikelyProbs = np.asarray(
+                    [probs[i, predictedLabels[i]].item() for i in range(len(probs))])
+                toKeep = mostLikelyProbs > confidenceThresh
+                if sum(toKeep) != 0:
+                    fakeClassifierLoss = criterion(
+                        predictionsFake[toKeep], predictedLabels[toKeep]) * advWeight
+                    fakeClassifierLoss.backward()
 
-            cfr_optimizer.step()
+                cfr_optimizer.step()
 
-            # reset the gradients
-            dis_optimizer.zero_grad()
-            gen_optimizer.zero_grad()
+            if config.enable_GAN:
+                # reset the gradients
+                dis_optimizer.zero_grad()
+                gen_optimizer.zero_grad()
             cfr_optimizer.zero_grad()
 
-            # save losses for graphing
-            generatorLosses.append(lossGenerator.item())
-            discriminatorLosses.append(lossDiscriminator.item())
+            if config.enable_GAN:
+                # save losses for graphing
+                generatorLosses.append(lossGenerator.item())
+                discriminatorLosses.append(lossDiscriminator.item())
             classifierLosses.append(realClassifierLoss.item())
 
             if config.apply_scheduler:
-                dis_scheduler.step()
+                if config.enable_GAN:
+                    dis_scheduler.step()
+                    gen_scheduler.step()
                 cfr_scheduler.step()
-                gen_scheduler.step()
 
         log_print("Epoch " + str(epoch_i+1) + " Complete")
         evaluation(epoch_i)
