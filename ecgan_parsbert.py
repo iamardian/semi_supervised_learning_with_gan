@@ -139,6 +139,7 @@ class config:
     def to_string():
         name = "ec_gan|"
         members = config.get_members()
+        members.sort()
         for var in members:
             y = var.split("_")
             x = ""
