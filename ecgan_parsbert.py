@@ -137,15 +137,15 @@ class config:
         return [attr for attr in dir(config) if not attr.startswith("__") and not callable(getattr(config, attr))]
 
     def to_string():
-        name = "[ec_gan]"
+        name = "ec_gan|"
         members = config.get_members()
         for var in members:
             y = var.split("_")
             x = ""
             for y2 in y:
                 x = x+y2[0]
-            name = name + f"[{x}_{getattr(config, var)}]"
-        return name
+            name = name + f"{x}_{getattr(config, var)}|"
+        return name[:-1]
 
 
 try:
@@ -846,7 +846,7 @@ def save_params(epoch, save_path):
     # print("call save_params")
     try:
         create_path_if_not_exists(save_path)
-        model_name_path = f'{str(epoch).zfill(3)}_{config.dataset_name}_{config.percentage_labeled_data}_{config.adversarial_weight}_{config.confidence_thresh}.pth'
+        model_name_path = f'{str(epoch).zfill(3)}_{config.dataset_name}.pth'
         model_path_name = os.path.join(save_path, model_name_path)
         torch.save({
             'epoch': epoch,
