@@ -32,7 +32,7 @@ class Generator_DCG(nn.Module):
         super(Generator_DCG, self).__init__()
         ngf=16
         self.main = nn.Sequential(
-            nn.ConvTranspose1d(in_channels=noise_size, out_channels=ngf, kernel_size=4,stride=1, padding=1, dilation=1, bias=False),
+            nn.ConvTranspose1d(in_channels=noise_size, out_channels=ngf, kernel_size=1,stride=1, padding=1, dilation=1, bias=False),
             nn.BatchNorm1d(ngf),
             nn.ReLU(True),
 
