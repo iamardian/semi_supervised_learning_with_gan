@@ -42,8 +42,8 @@ class Generator_DCG(nn.Module):
             # Output: output is 768
         )
 
-    def forward(self, input, latent_dim):
-        output = self.main(input, latent_dim)
+    def forward(self, input):
+        output = self.main(input)
         return output
 
 
