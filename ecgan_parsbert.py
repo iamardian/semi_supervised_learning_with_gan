@@ -28,16 +28,18 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 # Generator Code
 # Generator Model Class Definition
 class Generator_DCG(nn.Module):
-    def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1):
+    def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1, batch_size=32):
         super(Generator_DCG, self).__init__()
         self.main = nn.Sequential(
             # Block 1:input is Z(100)
-            nn.ConvTranspose2d(32*noise_size, 32*512, 3, 1, 1, bias=False),
-            nn.BatchNorm2d(32*512),
+            nn.ConvTranspose2d(batch_size*noise_size,
+                               batch_size*512, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(batch_size*512),
             nn.ReLU(True),
 
             # Block 2: input is (512)
-            nn.ConvTranspose2d(32*512, 32*768, 3, 1, 1, bias=False),
+            nn.ConvTranspose2d(batch_size*512, batch_size * \
+                               768, 3, 1, 1, bias=False),
             nn.Tanh()
             # Output: output is 768
         )
@@ -48,7 +50,7 @@ class Generator_DCG(nn.Module):
 
 
 class Generator_MLP(nn.Module):
-    def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1):
+    def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1, batch_size=32):
         super(Generator_MLP, self).__init__()
         layers = []
         hidden_sizes = [noise_size] + hidden_sizes
@@ -62,6 +64,7 @@ class Generator_MLP(nn.Module):
     def forward(self, noise):
         output_rep = self.layers(noise)
         return output_rep
+
 
 class Discriminator(nn.Module):
     def __init__(self, input_size=512, hidden_sizes=[512], dropout_rate=0.1):
@@ -162,7 +165,7 @@ def print_params(params):
 ##########################
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:C:G:D:N:"
+options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:C:G:D:N:b:"
 # Long options
 long_options = ["help",
                 "dataset",
@@ -183,6 +186,7 @@ long_options = ["help",
                 "generator_layer",
                 "discriminator_layer",
                 "generator_arch",
+                "batch_size",
                 ]
 
 model_repo = {
@@ -222,6 +226,8 @@ class config:
     warmup_proportion = 0.1
 
     generator_model_architecture = model_architecture_Generator["MLP"]
+
+    batch_size = 32
 
     def get_members():
         return [attr for attr in dir(config) if not attr.startswith("__") and not callable(getattr(config, attr))]
@@ -285,6 +291,8 @@ try:
             config.num_hidden_layers_d = int(currentValue)
         elif currentArgument in ("-N", "--generator_arch"):
             config.generator_model_architecture = model_architecture_Generator[currentValue]
+        elif currentArgument in ("-b", "--batch_size"):
+            config.batch_size = int(currentValue)
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -360,7 +368,7 @@ dataSizeConstant = config.percentage_labeled_data
 #  Transformer parameters
 # --------------------------------
 max_seq_length = 128
-batch_size = 32
+batch_size = config.batch_size
 
 
 # size of the generator's input noisy vectors
@@ -583,7 +591,7 @@ hidden_levels_c = [hidden_size for i in range(0, config.num_hidden_layers_c)]
 #   Instantiate the Generator and Discriminator
 # -------------------------------------------------
 generator = config.generator_model_architecture(noise_size=noise_size, output_size=hidden_size,
-                                                hidden_sizes=hidden_levels_g, dropout_rate=out_dropout_rate)
+                                                hidden_sizes=hidden_levels_g, dropout_rate=out_dropout_rate, batch_size=batch_size)
 # generator = Generator_MLP(noise_size=noise_size, output_size=hidden_size,
 #                           hidden_sizes=hidden_levels_g, dropout_rate=out_dropout_rate)
 discriminator = Discriminator(
@@ -977,7 +985,7 @@ def train(datasetloader):
             fakeImageBatch = generator(noise)
 
             real_cpu = batch[0].to(device)
-            batch_size = real_cpu.size(0)
+            # batch_size = real_cpu.size(0)
 
             # Encode real data in the Transformer
             model_outputs = transformer(
