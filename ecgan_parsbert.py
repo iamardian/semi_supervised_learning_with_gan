@@ -30,13 +30,24 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 class Generator_DCG(nn.Module):
     def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1, batch_size=32):
         super(Generator_DCG, self).__init__()
-        ngf=16
+        ngf=768
         self.main = nn.Sequential(
-            nn.ConvTranspose1d(in_channels=noise_size, out_channels=ngf, kernel_size=1,stride=1, padding=1, dilation=1, bias=False),
+            nn.ConvTranspose1d(in_channels=noise_size,
+                               out_channels=ngf,
+                               kernel_size=4,
+                               stride=1,
+                               padding=0,
+                               dilation=1,
+                               bias=False),
             nn.BatchNorm1d(ngf),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2, inplace=True),
 
-            nn.ConvTranspose1d(in_channels=ngf//2, out_channels=1, kernel_size=10,stride=1, padding=1, bias=False),
+            nn.ConvTranspose1d(in_channels=ngf,
+                               out_channels=1,
+                               kernel_size=10,
+                               stride=1,
+                               padding=1,
+                               bias=False),
             nn.Tanh()
         )
 
