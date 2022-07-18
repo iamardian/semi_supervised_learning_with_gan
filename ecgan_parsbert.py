@@ -25,6 +25,88 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 #!pip install sentencepiece
 
 
+# Generator Code
+# Generator Model Class Definition
+class Generator_DCG(nn.Module):
+    def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1):
+        super(Generator_DCG, self).__init__()
+        self.main = nn.Sequential(
+            # Block 1:input is Z(100)
+            nn.ConvTranspose2d(noise_size, 512, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+
+            # Block 2: input is (512)
+            nn.ConvTranspose2d(512, 768, 3, 1, 1, bias=False),
+            nn.Tanh()
+            # Output: output is 768
+        )
+
+    def forward(self, input, latent_dim):
+        output = self.main(input, latent_dim)
+        return output
+
+
+class Generator_MLP(nn.Module):
+    def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1):
+        super(Generator_MLP, self).__init__()
+        layers = []
+        hidden_sizes = [noise_size] + hidden_sizes
+        for i in range(len(hidden_sizes)-1):
+            layers.extend([nn.Linear(hidden_sizes[i], hidden_sizes[i+1]),
+                          nn.LeakyReLU(0.2, inplace=True), nn.Dropout(dropout_rate)])
+
+        layers.append(nn.Linear(hidden_sizes[-1], output_size))
+        self.layers = nn.Sequential(*layers)
+
+    def forward(self, noise):
+        output_rep = self.layers(noise)
+        return output_rep
+
+class Discriminator(nn.Module):
+    def __init__(self, input_size=512, hidden_sizes=[512], dropout_rate=0.1):
+        super(Discriminator, self).__init__()
+        self.input_dropout = nn.Dropout(p=dropout_rate)
+        layers = []
+        hidden_sizes = [input_size] + hidden_sizes
+        for i in range(len(hidden_sizes)-1):
+            layers.extend([nn.Linear(hidden_sizes[i], hidden_sizes[i+1]),
+                          nn.LeakyReLU(0.2, inplace=True), nn.Dropout(dropout_rate)])
+
+        self.layers = nn.Sequential(*layers)  # per il flatten
+        self.logit = nn.Linear(hidden_sizes[-1], 1)  # fake/real.
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, input_rep):
+        input_rep = self.input_dropout(input_rep)
+        last_rep = self.layers(input_rep)
+        logits = self.logit(last_rep)
+        output = self.sigmoid(logits)
+        return output.view(-1, 1).squeeze(1)
+
+
+class Classifier(nn.Module):
+    def __init__(self, input_size=512, hidden_sizes=[512], num_labels=2, dropout_rate=0.1):
+        super(Classifier, self).__init__()
+        self.input_dropout = nn.Dropout(p=dropout_rate)
+        layers = []
+        hidden_sizes = [input_size] + hidden_sizes
+        for i in range(len(hidden_sizes)-1):
+            layers.extend([nn.Linear(hidden_sizes[i], hidden_sizes[i+1]),
+                          nn.LeakyReLU(0.2, inplace=True), nn.Dropout(dropout_rate)])
+
+        self.layers = nn.Sequential(*layers)  # per il flatten
+        self.logit = nn.Linear(hidden_sizes[-1], num_labels)  # fake/real.
+        self.softmax = nn.Softmax()
+
+    def forward(self, input_rep):
+        # input_rep = self.input_dropout(input_rep)
+        last_rep = self.layers(input_rep)
+        logits = self.logit(last_rep)
+        output = self.softmax(logits)
+        return output
+
+
 def create_path_if_not_exists(dir_path):
     # print("call create_path_if_not_exists")
     # print(f"dir_path : {dir_path}")
@@ -110,6 +192,11 @@ model_repo = {
     "albert": "albert-base-v2",
 }
 
+model_architecture_Generator = {
+    "MLP": Generator_MLP,
+    "DCG": Generator_DCG,
+}
+
 
 class config:
     model_title = "parsbert"
@@ -132,6 +219,8 @@ class config:
 
     apply_scheduler = False
     warmup_proportion = 0.1
+
+    generator_model_architecture = model_architecture_Generator["MLP"]
 
     def get_members():
         return [attr for attr in dir(config) if not attr.startswith("__") and not callable(getattr(config, attr))]
@@ -193,6 +282,8 @@ try:
             config.num_hidden_layers_g = int(currentValue)
         elif currentArgument in ("-D", "--discriminator_layer"):
             config.num_hidden_layers_d = int(currentValue)
+        elif currentArgument in ("-N", "--generator_arch"):
+            config.generator_model_architecture = model_architecture_Generator[currentValue]
 except getopt.error as err:
     # output error, and return with an error code
     print(str(err))
@@ -475,78 +566,6 @@ test_dataloader = generate_data_loader(
 
 """We define the Generator and Discriminator as discussed in https://www.aclweb.org/anthology/2020.acl-main.191/"""
 
-# ------------------------------
-#   The Generator as in
-#   https://www.aclweb.org/anthology/2020.acl-main.191/
-#   https://github.com/crux82/ganbert
-# ------------------------------
-
-
-class Generator(nn.Module):
-    def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1):
-        super(Generator, self).__init__()
-        layers = []
-        hidden_sizes = [noise_size] + hidden_sizes
-        for i in range(len(hidden_sizes)-1):
-            layers.extend([nn.Linear(hidden_sizes[i], hidden_sizes[i+1]),
-                          nn.LeakyReLU(0.2, inplace=True), nn.Dropout(dropout_rate)])
-
-        layers.append(nn.Linear(hidden_sizes[-1], output_size))
-        self.layers = nn.Sequential(*layers)
-
-    def forward(self, noise):
-        output_rep = self.layers(noise)
-        return output_rep
-# ------------------------------
-#   The Discriminator
-#   https://www.aclweb.org/anthology/2020.acl-main.191/
-#   https://github.com/crux82/ganbert
-# ------------------------------
-
-
-class Discriminator(nn.Module):
-    def __init__(self, input_size=512, hidden_sizes=[512], dropout_rate=0.1):
-        super(Discriminator, self).__init__()
-        self.input_dropout = nn.Dropout(p=dropout_rate)
-        layers = []
-        hidden_sizes = [input_size] + hidden_sizes
-        for i in range(len(hidden_sizes)-1):
-            layers.extend([nn.Linear(hidden_sizes[i], hidden_sizes[i+1]),
-                          nn.LeakyReLU(0.2, inplace=True), nn.Dropout(dropout_rate)])
-
-        self.layers = nn.Sequential(*layers)  # per il flatten
-        self.logit = nn.Linear(hidden_sizes[-1], 1)  # fake/real.
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, input_rep):
-        input_rep = self.input_dropout(input_rep)
-        last_rep = self.layers(input_rep)
-        logits = self.logit(last_rep)
-        output = self.sigmoid(logits)
-        return output.view(-1, 1).squeeze(1)
-
-
-class Classifier(nn.Module):
-    def __init__(self, input_size=512, hidden_sizes=[512], num_labels=2, dropout_rate=0.1):
-        super(Classifier, self).__init__()
-        self.input_dropout = nn.Dropout(p=dropout_rate)
-        layers = []
-        hidden_sizes = [input_size] + hidden_sizes
-        for i in range(len(hidden_sizes)-1):
-            layers.extend([nn.Linear(hidden_sizes[i], hidden_sizes[i+1]),
-                          nn.LeakyReLU(0.2, inplace=True), nn.Dropout(dropout_rate)])
-
-        self.layers = nn.Sequential(*layers)  # per il flatten
-        self.logit = nn.Linear(hidden_sizes[-1], num_labels)  # fake/real.
-        self.softmax = nn.Softmax()
-
-    def forward(self, input_rep):
-        # input_rep = self.input_dropout(input_rep)
-        last_rep = self.layers(input_rep)
-        logits = self.logit(last_rep)
-        output = self.softmax(logits)
-        return output
-
 
 """We instantiate the Discriminator and Generator"""
 
@@ -562,8 +581,10 @@ hidden_levels_c = [hidden_size for i in range(0, config.num_hidden_layers_c)]
 # -------------------------------------------------
 #   Instantiate the Generator and Discriminator
 # -------------------------------------------------
-generator = Generator(noise_size=noise_size, output_size=hidden_size,
-                      hidden_sizes=hidden_levels_g, dropout_rate=out_dropout_rate)
+generator = config.generator_model_architecture(noise_size=noise_size, output_size=hidden_size,
+                                                hidden_sizes=hidden_levels_g, dropout_rate=out_dropout_rate)
+# generator = Generator_MLP(noise_size=noise_size, output_size=hidden_size,
+#                           hidden_sizes=hidden_levels_g, dropout_rate=out_dropout_rate)
 discriminator = Discriminator(
     input_size=hidden_size, hidden_sizes=hidden_levels_d, dropout_rate=out_dropout_rate)
 classifier = Classifier(input_size=hidden_size, hidden_sizes=hidden_levels_c,
