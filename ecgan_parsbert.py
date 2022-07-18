@@ -162,7 +162,7 @@ def print_params(params):
 ##########################
 argumentList = sys.argv[1:]
 # Options
-options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:C:G:D:"
+options = "hd:p:w:t:e:l:m:o:c:g:r:s:u:a:C:G:D:N:"
 # Long options
 long_options = ["help",
                 "dataset",
@@ -182,6 +182,7 @@ long_options = ["help",
                 "classifier_layer",
                 "generator_layer",
                 "discriminator_layer",
+                "generator_arch",
                 ]
 
 model_repo = {
