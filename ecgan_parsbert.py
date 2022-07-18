@@ -33,14 +33,12 @@ class Generator_DCG(nn.Module):
         self.main = nn.Sequential(
             # Block 1:input is Z(100)
             ngf=1536
-            nn.ConvTranspose1d(in_channels=noise_size, out_channels=ngf, kernel_size=4,
-                               stride=1, padding=1, dilation=1, bias=False),
+            nn.ConvTranspose1d(in_channels=noise_size, out_channels=ngf, kernel_size=4,stride=1, padding=1, dilation=1, bias=False),
             nn.BatchNorm1d(ngf),
             nn.ReLU(True),
 
             # Block 2: input is (512)
-            nn.ConvTranspose1d(in_channels=ngf//2, out_channels=1, kernel_size=10,
-                               stride=1, padding=1, bias=False),
+            nn.ConvTranspose1d(in_channels=ngf//2, out_channels=1, kernel_size=10,stride=1, padding=1, bias=False),
             nn.Tanh()
             # Output: output is 768
         )
