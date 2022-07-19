@@ -30,9 +30,9 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 class Generator_DCG(nn.Module):
     def __init__(self, noise_size=100, output_size=512, hidden_sizes=[512], dropout_rate=0.1, batch_size=32):
         super(Generator_DCG, self).__init__()
-        ngf = 768
+        ngf = output_size
         self.main = nn.Sequential(
-            nn.ConvTranspose1d(noise_size, ngf*2, 4, 1, 0, bias=False),
+            nn.ConvTranspose1d(noise_size, ngf*2, 4, 1, 1, bias=False),
             nn.BatchNorm1d(ngf*2),
             nn.ReLU(True),
 
@@ -40,14 +40,15 @@ class Generator_DCG(nn.Module):
             nn.BatchNorm1d(ngf),
             nn.ReLU(True),
 
-            nn.ConvTranspose1d(ngf, 1, 4, 1, 1, bias=False),
+            nn.ConvTranspose1d(ngf, ngf, 1, 1, 1, bias=False),
             nn.Tanh()
         )
 
     def forward(self, input):
-        print(input[None,:].size())
-        output = self.main(input[None,:])
-        return output
+        # print(input[:,None].size())
+        input = input[:,:,None]
+        output = self.main(input)
+        return torch.squeeze(output)
 
 
 class Generator_MLP(nn.Module):
