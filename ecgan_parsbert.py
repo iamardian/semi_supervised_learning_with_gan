@@ -45,6 +45,7 @@ class Generator_DCG(nn.Module):
         )
 
     def forward(self, input):
+        print(input.size())
         output = self.main(input)
         return output
 
